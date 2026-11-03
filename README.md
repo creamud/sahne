@@ -1,26 +1,46 @@
 # Sahne
 
-**Code-driven motion graphics for educational videos.**
+**Code-driven motion graphics for educational videos.** Sahne turns structured content into deterministic, editable animations and MP4 clips. It is designed for coding agents, not diffusion-based video generation.
 
-Sahne turns structured content into deterministic, editable motion graphics and MP4 clips. It is built for AI coding agents, not diffusion-based video generation.
+## Quick start
 
-## MVP
+Requirements: Node.js 22+, pnpm 10+, and a machine able to run Chromium (Remotion installs/uses a supported browser).
 
-- Remotion + React + TypeScript for frame-accurate rendering.
-- Reusable animations: titles, statistics, comparisons, and explanatory diagrams.
-- A versioned, validated scene specification for content separate from presentation.
-- Local Remotion Studio for previews, a scriptable renderer for export, and a minimal smoke test.
+```bash
+pnpm install
+pnpm dev
+```
 
-## Boundaries
+Open Remotion Studio to inspect and scrub **SahneDemo**.
 
-Sahne is **not** a text-to-video diffusion service, video editor, cloud render farm, or SaaS platform. Start local-first with deterministic templates.
+```bash
+pnpm render:example
+```
 
-## Status
+This exports `out/sahne-demo.mp4` (1920×1080, 30 fps, six seconds). The example metrics are **illustrative, not measurements**.
 
-Initial scaffold in progress. See the [issues](https://github.com/yesvus/sahne/issues) for the roadmap.
+To customize the input, edit [examples/demo.json](examples/demo.json). To change animation design, edit [src/compositions/SahneDemo.tsx](src/compositions/SahneDemo.tsx).
 
-## Reference
+```bash
+pnpm typecheck
+pnpm test
+```
 
-- [Remotion documentation](https://www.remotion.dev/docs/)
-- [Remotion CLI](https://www.remotion.dev/docs/cli/)
-- [Remotion license](https://www.remotion.dev/docs/license/)
+## Architecture
+
+- **Scene specification:** versioned JSON validated with Zod.
+- **Visual implementation:** React components and frame-driven animation primitives.
+- **Preview:** Remotion Studio; **export:** Remotion CLI → MP4.
+- **MVP limit:** local-first, one example composition and one template. More templates, CLI automation and quality checks are tracked in [issues](https://github.com/yesvus/sahne/issues).
+
+See [architecture](docs/architecture.md) and [agent instructions](AGENTS.md).
+
+## Scope and licensing
+
+No diffusion/video-generation models, SaaS dashboard, Kubernetes, cloud render farm or custom timeline editor in v0.
+
+Sahne itself has no assigned open-source license yet: `public` on GitHub does **not** automatically grant redistribution rights. Remotion has its own [license conditions](https://www.remotion.dev/docs/license/). Choose a Sahne license in a dedicated issue before encouraging reuse.
+
+## Resources
+
+[Remotion](https://www.remotion.dev/docs/) · [Parameterized videos](https://www.remotion.dev/docs/parameterized-rendering) · [CLI](https://www.remotion.dev/docs/cli/)
