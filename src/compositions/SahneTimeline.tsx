@@ -1,6 +1,6 @@
 import React from 'react';
 import {Series} from 'remotion';
-import {manifestSchema, type TimelineManifest} from '../manifest';
+import type {TimelineManifest} from '../manifest';
 import {SahneDemo} from './SahneDemo';
 
 type Props = {manifest: TimelineManifest};
@@ -10,11 +10,9 @@ type Props = {manifest: TimelineManifest};
  * Scenes do not overlap, so the final duration is the exact sum of frames.
  */
 export const SahneTimeline: React.FC<Props> = ({manifest}) => {
-  const parsed = manifestSchema.parse(manifest);
-
   return (
     <Series>
-      {parsed.scenes.map((scene) => (
+      {manifest.scenes.map((scene) => (
         <Series.Sequence key={scene.id} durationInFrames={scene.durationInFrames}>
           <SahneDemo scene={scene.props} sceneDurationInFrames={scene.durationInFrames} />
         </Series.Sequence>
