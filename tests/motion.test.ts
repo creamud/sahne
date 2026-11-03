@@ -8,6 +8,8 @@ import {
   normalizedFrameProgress,
 } from '../src/design/motion';
 import {contrastRatio, tokens} from '../src/design/tokens';
+import {demoScene} from '../src/examples/default';
+import {demoManifest} from '../src/examples/timeline';
 
 test('progress clamps before and after its frame interval', () => {
   assert.equal(normalizedFrameProgress(0, 30, 60), 0);
@@ -55,13 +57,34 @@ test('default theme text and example accents have readable contrast', () => {
   const background = tokens.colors.background;
   assert.ok(contrastRatio(tokens.colors.foreground, background) >= 4.5);
   assert.ok(contrastRatio(tokens.colors.muted, background) >= 4.5);
-  assert.ok(contrastRatio('#4cc9f0', background) >= 3);
-  assert.ok(contrastRatio('#a78bfa', background) >= 3);
+  const exampleAccents = [demoScene.accentColor, ...demoManifest.scenes.map((scene) => scene.props.accentColor)];
+  for (const accent of exampleAccents) {
+    assert.ok(contrastRatio(accent, background) >= 3, `Accent ${accent} has insufficient contrast`);
+  }
   assert.throws(() => contrastRatio('#zzz', background), RangeError);
 });
 
 
-test('single-frame scenes display meaningful content immediately', () => {
-  assert.deepEqual(getEnterExitMotion(0, 1), {opacity: 1, translateY: 0});
-  assert.equal(getMetricBarProgress(0, 1, 0, 1), 1);
+test('scenes with 1–3 frames display meaningful content immediately', () => {
+  for (const duration of [1, 2, 3]) {
+    assert.deepEqual(getEnterExitMotion(0, duration), {opacity: 1, translateY: 0});
+    assert.equal(getMetricBarProgress(0, duration, 0, 1), 1);
+  }
+});
+
+test('bars complete on the final frame of a four- or five-frame scene', () => {
+  for (const duration of [4, 5]) {
+    for (let index = 0; index < 4; index++) {
+      assert.equal(getMetricBarProgress(duration - 1, duration, index, 4), 1);
+    }
+  }
+});
+
+test('short scene timing rejects non-finite frames', () => {
+  for (const duration of [1, 2, 3]) {
+    for (const frame of [NaN, Infinity, -Infinity]) {
+      assert.throws(() => getEnterExitMotion(frame, duration), RangeError);
+      assert.throws(() => getMetricBarProgress(frame, duration, 0, 1), RangeError);
+    }
+  }
 });
