@@ -7,7 +7,7 @@ This is a deliberately small foundation for code-driven 1920×1080 educational g
 - Default aspect ratio: **16:9**, 1920×1080 at 30 fps.
 - Background `#0b1220`; primary text `#f8fafc`; muted text `#a8b5c8`; bar track `#1e293b`.
 - Safe padding: **150 px horizontal** and **105 px vertical**, applied once by `SceneCanvas`.
-- Use Arial/Helvetica system fallback. Eyebrow **24 px**, title **78 px** (adaptively **68/58 px** for long titles), subtitle **28 px** (24 px for longer text), metric label **34 px**.
+- Use Arial/Helvetica system fallback. Eyebrow **24 px**, title **78 px** (**68 px** above 38 characters, **58 px** above 60 characters), subtitle **28 px** (**24 px** above 110 characters), metric label **34 px**. These cutoffs and sizes are defined in `tokens.maxTextLength` and `tokens.fontSizes`.
 - Preserve generous whitespace and avoid more than four metrics per frame. Smaller fonts should be introduced deliberately, not by scaling all elements.
 - Theme-specific accent colors are passed as `#RRGGBB` values; the scene schema validates their syntax.
 
