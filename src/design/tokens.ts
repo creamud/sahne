@@ -8,8 +8,9 @@ export const tokens = {
     track: '#1e293b',
   },
   safeArea: {horizontal: 150, vertical: 105},
-  fontSizes: {eyebrow: 24, title: 78, subtitle: 28, metric: 34},
-  spacing: {eyebrowToTitle: 18, headerToMetrics: 54, metricGap: 26},
+  fontSizes: {eyebrow: 24, title: 78, titleMedium: 68, titleCompact: 58, subtitle: 28, subtitleCompact: 24, metric: 34},
+  maxTextLength: {titleRegular: 38, titleMedium: 60, subtitleRegular: 110},
+  spacing: {eyebrowToTitle: 18, headerToMetrics: 54, metricGap: 26, metricGapDense: 18},
   metricBarHeight: 26,
 } as const;
 
