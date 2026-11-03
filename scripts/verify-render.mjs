@@ -13,7 +13,8 @@ const result = execFileSync(
   [
     '-v', 'error',
     '-select_streams', 'v:0',
-    '-show_entries', 'stream=codec_name,width,height,r_frame_rate,nb_frames:format=duration',
+    '-count_frames',
+    '-show_entries', 'stream=codec_name,width,height,r_frame_rate,nb_read_frames:format=duration',
     '-of', 'json',
     filename,
   ],
@@ -37,7 +38,7 @@ for (const [key, value] of Object.entries(expected)) {
 if (!Number.isFinite(duration) || duration < 0.95 || duration > 1.05) {
   throw new Error(`Unexpected duration: ${duration}s (expected ~1s)`);
 }
-if (stream.nb_frames !== undefined && Number(stream.nb_frames) !== 30) {
-  throw new Error(`Unexpected frame count: ${stream.nb_frames} (expected 30)`);
+if (stream.nb_read_frames === undefined || Number(stream.nb_read_frames) !== 30) {
+  throw new Error(`Unexpected decoded frame count: ${stream.nb_read_frames} (expected 30)`);
 }
 console.log(`Verified H.264 ${stream.width}×${stream.height} @ 30 fps, ${duration}s (${stats.size} bytes).`);
