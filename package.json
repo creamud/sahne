@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Code-first educational motion graphics",
+  "packageManager": "pnpm@10.20.0",
   "engines": {
     "node": ">=22"
   },
@@ -11,6 +12,8 @@
     "dev": "remotion studio src/index.ts",
     "render": "remotion render src/index.ts SahneDemo out/sahne-demo.mp4",
     "render:example": "remotion render src/index.ts SahneDemo out/sahne-demo.mp4 --props=./examples/demo.json",
+    "render:smoke": "remotion render src/index.ts SahneDemo out/smoke.mp4 --props=./examples/demo.json --frames=0-29 --codec=h264 --concurrency=2 --log=warn",
+    "verify:smoke": "node scripts/verify-render.mjs out/smoke.mp4",
     "compositions": "remotion compositions src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts"
@@ -19,7 +22,7 @@
     "remotion": "4.0.540",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "zod": "4.1.12"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@remotion/cli": "4.0.540",
