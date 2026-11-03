@@ -14,7 +14,7 @@ export const SahneTimeline: React.FC<Props> = ({manifest}) => {
     <Series>
       {manifest.scenes.map((scene) => (
         <Series.Sequence key={scene.id} durationInFrames={scene.durationInFrames}>
-          <SahneDemo scene={scene.props} />
+          <SahneDemo scene={scene.props} sceneDurationInFrames={scene.durationInFrames} />
         </Series.Sequence>
       ))}
     </Series>
