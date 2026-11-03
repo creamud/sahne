@@ -81,3 +81,23 @@ test('rejects total durations longer than 10 minutes', () => {
     assert.equal(result.error.issues[0].path.join('.'), 'scenes');
   }
 });
+
+
+test('duplicate scene IDs always point to the original occurrence', () => {
+  const malformed = {
+    ...demoManifest,
+    scenes: [
+      demoManifest.scenes[0],
+      {...demoManifest.scenes[1], id: 'incoming'},
+      {...demoManifest.scenes[1], id: 'incoming'},
+    ],
+  };
+  const result = manifestSchema.safeParse(malformed);
+  assert.equal(result.success, false);
+  if (!result.success) {
+    const duplicates = result.error.issues.filter((issue) => issue.message.includes('Duplicate scene id'));
+    assert.equal(duplicates.length, 2);
+    assert.deepEqual(duplicates.map((issue) => issue.path.join('.')), ['scenes.1.id', 'scenes.2.id']);
+    assert.ok(duplicates.every((issue) => issue.message.includes('first used by scene 1')));
+  }
+});
