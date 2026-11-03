@@ -46,3 +46,14 @@ Sahne itself has no assigned open-source license yet: `public` on GitHub does **
 ## Resources
 
 [Remotion](https://www.remotion.dev/docs/) · [Parameterized videos](https://www.remotion.dev/docs/parameterized-rendering) · [CLI](https://www.remotion.dev/docs/cli/)
+
+## Multi-scene timeline (v1)
+
+Edit [examples/two-scenes.json](examples/two-scenes.json) to change the ordered scenes and their durations.
+
+```bash
+pnpm render:timeline
+pnpm render:timeline:smoke
+```
+
+The full sample is six seconds and consists of two 2.5s/3.5s scenes. The smoke test renders 30 frames across the scene boundary. See [scene manifest format](docs/scene-manifest.md).
