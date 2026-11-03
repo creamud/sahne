@@ -24,7 +24,9 @@ export const manifestSchema = z.object({
         path: ['scenes', index, 'id'],
       });
     }
-    seen.set(scene.id, index);
+    if (existing === undefined) {
+      seen.set(scene.id, index);
+    }
     total += scene.durationInFrames;
   }
 
