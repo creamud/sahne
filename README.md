@@ -35,7 +35,7 @@ pnpm verify:smoke
 - **Preview:** Remotion Studio; **export:** Remotion CLI → MP4.
 - **MVP limit:** local-first, one example composition and one template. More templates, CLI automation and quality checks are tracked in [issues](https://github.com/yesvus/sahne/issues).
 
-See [development and CI](docs/development.md), [architecture](docs/architecture.md) and [agent instructions](AGENTS.md).
+See [development and CI](docs/development.md), [architecture](docs/architecture.md), and the [style guide](docs/style-guide.md) and [agent instructions](AGENTS.md).
 
 ## Scope and licensing
 
