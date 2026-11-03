@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate-and-render:
+  checks:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
