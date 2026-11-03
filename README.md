@@ -7,7 +7,7 @@
 Requirements: Node.js 22+, pnpm 10+, and a machine able to run Chromium (Remotion installs/uses a supported browser).
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
@@ -24,6 +24,8 @@ To customize the input, edit [examples/demo.json](examples/demo.json). To change
 ```bash
 pnpm typecheck
 pnpm test
+pnpm render:smoke
+pnpm verify:smoke
 ```
 
 ## Architecture
@@ -33,7 +35,7 @@ pnpm test
 - **Preview:** Remotion Studio; **export:** Remotion CLI → MP4.
 - **MVP limit:** local-first, one example composition and one template. More templates, CLI automation and quality checks are tracked in [issues](https://github.com/yesvus/sahne/issues).
 
-See [architecture](docs/architecture.md) and [agent instructions](AGENTS.md).
+See [development and CI](docs/development.md), [architecture](docs/architecture.md) and [agent instructions](AGENTS.md).
 
 ## Scope and licensing
 
