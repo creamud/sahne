@@ -1,37 +1,5 @@
-import type {TimelineManifest} from '../manifest';
+import sampleProps from '../../examples/two-scenes.json' with {type: 'json'};
+import {manifestSchema} from '../manifest';
 
-export const demoManifest: TimelineManifest = {
-  schemaVersion: 1,
-  scenes: [
-    {
-      id: 'incoming',
-      type: 'metrics',
-      durationInFrames: 75,
-      props: {
-        schemaVersion: 1,
-        title: 'Illustrative incoming load',
-        subtitle: 'Synthetic data for a code-to-video demonstration',
-        accentColor: '#4cc9f0',
-        metrics: [
-          {label: 'Gateway', value: 62},
-          {label: 'API', value: 81},
-        ],
-      },
-    },
-    {
-      id: 'processed',
-      type: 'metrics',
-      durationInFrames: 105,
-      props: {
-        schemaVersion: 1,
-        title: 'Illustrative processed load',
-        subtitle: 'Numbers are examples and not measured results',
-        accentColor: '#a78bfa',
-        metrics: [
-          {label: 'Worker A', value: 47},
-          {label: 'Worker B', value: 92},
-        ],
-      },
-    },
-  ],
-};
+// The checked-in JSON example is the single source of truth for Studio and CLI.
+export const demoManifest = manifestSchema.parse(sampleProps.manifest);
