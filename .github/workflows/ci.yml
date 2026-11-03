@@ -13,20 +13,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  checks:
+  validate-and-render:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.20.0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+          cache: pnpm
+      - name: Install frozen dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check Remotion version alignment
+        run: pnpm exec remotion versions
       - name: Typecheck
         run: pnpm typecheck
       - name: Unit tests
         run: pnpm test
+      - name: Prepare Chromium
+        run: pnpm exec remotion browser ensure
+      - name: Render thirty-frame H.264 smoke video
+        shell: bash
+        run: |
+          mkdir -p out
+          set -o pipefail
+          pnpm render:smoke 2>&1 | tee out/render.log
+      - name: Verify encoded video
+        run: pnpm verify:smoke
+      - name: Upload debugging artifacts if validation fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sahne-ci-debug
+          path: out/
+          if-no-files-found: ignore
+          retention-days: 3
