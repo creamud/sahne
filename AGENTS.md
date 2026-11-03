@@ -22,3 +22,9 @@ Node.js 22+, pnpm 10+, TypeScript/React, Remotion 4 (pin `remotion` and all `@re
 - https://www.remotion.dev/docs/license/
 
 Install the official Remotion Agent Skills locally with `pnpm exec remotion skills add` if appropriate. Do not commit generated vendor skill files without review.
+
+## Multi-scene manifests
+
+Prefer a versioned JSON manifest over hand-coded one-off sequences. V1 supports ordered `metrics` scenes with explicit integer `durationInFrames` and typed scene `props`. Validate with `manifestSchema`, keep IDs unique, and use `getSceneWindows()` for half-open boundaries. See `docs/scene-manifest.md`.
+
+Do not bake scene durations into global time calculations or use wall-clock time. New scene types must be introduced through a schema variant and renderer dispatch with tests.
