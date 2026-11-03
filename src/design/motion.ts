@@ -36,6 +36,9 @@ export const getEnterExitMotion = (
   if (!Number.isInteger(totalFrames) || totalFrames < 1) {
     throw new RangeError('Scene must have at least one frame');
   }
+  if (!Number.isFinite(frame)) {
+    throw new RangeError('Frame must be finite');
+  }
   // Ultra-short cuts should display their content instead of a blank intro frame.
   if (totalFrames < 4) {
     return {opacity: 1, translateY: 0};
@@ -64,11 +67,14 @@ export const getMetricBarProgress = (
   if (!Number.isInteger(metricCount) || metricCount < 1 || !Number.isInteger(index) || index < 0 || index >= metricCount) {
     throw new RangeError('Metric index/count are invalid');
   }
+  if (!Number.isFinite(frame)) {
+    throw new RangeError('Frame must be finite');
+  }
   if (totalFrames < 4) {
     return 1;
   }
   const stagger = Math.max(1, Math.floor(totalFrames * 0.045));
-  const start = Math.min(totalFrames - 1, Math.floor(totalFrames * 0.20) + stagger * index);
+  const start = Math.min(totalFrames - 2, Math.floor(totalFrames * 0.20) + stagger * index);
   const end = Math.max(start + 1, Math.floor(totalFrames * 0.78));
   return easeOutCubic(normalizedFrameProgress(frame, start, end - start));
 };
