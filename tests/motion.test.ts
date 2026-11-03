@@ -59,3 +59,9 @@ test('default theme text and example accents have readable contrast', () => {
   assert.ok(contrastRatio('#a78bfa', background) >= 3);
   assert.throws(() => contrastRatio('#zzz', background), RangeError);
 });
+
+
+test('single-frame scenes display meaningful content immediately', () => {
+  assert.deepEqual(getEnterExitMotion(0, 1), {opacity: 1, translateY: 0});
+  assert.equal(getMetricBarProgress(0, 1, 0, 1), 1);
+});
