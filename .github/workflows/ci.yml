@@ -41,6 +41,8 @@ jobs:
           mkdir -p out
           set -o pipefail
           pnpm render:smoke 2>&1 | tee out/render.log
+      - name: Install ffprobe for metadata validation
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Verify encoded video
         run: pnpm verify:smoke
       - name: Upload debugging artifacts if validation fails
