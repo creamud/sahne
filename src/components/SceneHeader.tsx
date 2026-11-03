@@ -18,8 +18,14 @@ export const SceneHeader: React.FC<Props> = ({
   durationInFrames,
 }) => {
   const {opacity, translateY} = getEnterExitMotion(frame, durationInFrames);
-  const titleFontSize = title.length > 60 ? 58 : title.length > 38 ? 68 : tokens.fontSizes.title;
-  const subtitleFontSize = subtitle.length > 110 ? 24 : tokens.fontSizes.subtitle;
+  const titleFontSize = title.length > tokens.maxTextLength.titleMedium
+    ? tokens.fontSizes.titleCompact
+    : title.length > tokens.maxTextLength.titleRegular
+      ? tokens.fontSizes.titleMedium
+      : tokens.fontSizes.title;
+  const subtitleFontSize = subtitle.length > tokens.maxTextLength.subtitleRegular
+    ? tokens.fontSizes.subtitleCompact
+    : tokens.fontSizes.subtitle;
 
   return (
     <header style={{opacity, transform: `translateY(${translateY}px)`}}>
