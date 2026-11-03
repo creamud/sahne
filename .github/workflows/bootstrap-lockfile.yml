@@ -1,0 +1,36 @@
+# Temporary bootstrap workflow. Remove after pnpm-lock.yaml is committed.
+name: Bootstrap lockfile
+
+on:
+  push:
+    branches: [feat/issue-2-ci-lockfile]
+
+permissions:
+  contents: write
+
+jobs:
+  generate-lockfile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate and verify lockfile
+        run: |
+          pnpm install --lockfile-only --ignore-scripts
+          pnpm install --frozen-lockfile
+      - name: Commit lockfile to the feature branch
+        run: |
+          git add pnpm-lock.yaml
+          if git diff --cached --quiet; then
+            echo "Lockfile already current."
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'build: add generated pnpm lockfile'
+          git push origin HEAD:feat/issue-2-ci-lockfile
