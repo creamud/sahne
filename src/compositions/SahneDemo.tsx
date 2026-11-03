@@ -31,7 +31,7 @@ export const SahneDemo: React.FC<Props> = ({scene, sceneDurationInFrames}) => {
         style={{
           marginTop: tokens.spacing.headerToMetrics,
           display: 'grid',
-          rowGap: metrics.length >= 4 ? 18 : tokens.spacing.metricGap,
+          rowGap: metrics.length >= 4 ? tokens.spacing.metricGapDense : tokens.spacing.metricGap,
         }}
       >
         {metrics.map((metric, index) => (
