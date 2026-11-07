@@ -1,0 +1,20 @@
+{
+  "text": "The client sends a request. The server processes it. The server responds.",
+  "segments": [
+    {
+      "start": 0.2,
+      "end": 1.8,
+      "text": "The client sends a request."
+    },
+    {
+      "start": 2,
+      "end": 3.7,
+      "text": "The server processes it."
+    },
+    {
+      "start": 4,
+      "end": 5.9,
+      "text": "The server responds."
+    }
+  ]
+}

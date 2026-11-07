@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "client-server-request-v1",
+  "title": "Client/server request flow (synthetic metadata fixture)",
+  "description": "Example asset record only; no real clip or rights approval is implied by this fixture",
+  "category": "motion-graphic",
+  "tags": [
+    "networking",
+    "http",
+    "request"
+  ],
+  "reviewStatus": "approved",
+  "rights": {
+    "origin": "original",
+    "clearance": "cleared",
+    "license": "creator-owned"
+  },
+  "location": {
+    "kind": "local",
+    "relativePath": "client-server-request-v1/clip.webm"
+  }
+}

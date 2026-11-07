@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "narration": {
+    "voicePath": "audio/voice-original.wav",
+    "approvedScriptPath": "script.md",
+    "transcriptPath": "transcript.json"
+  },
+  "fps": 30,
+  "durationMs": 6200,
+  "beats": [
+    {
+      "id": "client-request",
+      "startMs": 300,
+      "endMs": 1600,
+      "treatment": "overlay",
+      "cueText": "The client sends a request",
+      "cueSegmentIndex": 0,
+      "source": {
+        "kind": "asset",
+        "assetId": "client-server-request-v1"
+      }
+    },
+    {
+      "id": "server-work",
+      "startMs": 2300,
+      "endMs": 3500,
+      "treatment": "cutaway",
+      "cueText": "The server processes it",
+      "cueSegmentIndex": 1,
+      "source": {
+        "kind": "generate",
+        "brief": "Visualize an HTTP request being processed inside a server queue."
+      }
+    },
+    {
+      "id": "server-response",
+      "startMs": 4100,
+      "endMs": 5700,
+      "treatment": "overlay",
+      "cueText": "The server responds",
+      "cueSegmentIndex": 2,
+      "source": {
+        "kind": "asset",
+        "assetId": "client-server-request-v1"
+      }
+    }
+  ]
+}

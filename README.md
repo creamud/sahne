@@ -24,6 +24,16 @@ pnpm assets:search "/path/to/Asset Library" "client server"
 
 The CLI reads `*.asset.json` sidecars and returns JSON on success; on failure it writes a JSON `{ "error": "..." }` object to stderr and exits nonzero. Search defaults to **approved assets with cleared rights**, and `--all` includes drafts for inspection. Keep private files and Drive IDs out of this public repository. See [asset catalog format and storage](docs/storage-and-assets.md).
 
+## Narration storyboard validation (first integration boundary)
+
+Use Avenox Studio's existing transcription pipeline and validate its timed **segment-level** output against a human/agent-authored storyboard. This **does not** perform transcription, generate graphics or render the final narrated video.
+
+```bash
+pnpm storyboard:validate examples/production/transcript.sample.json examples/production/storyboard.sample.json examples/production/catalog
+```
+
+The sample contains **synthetic metadata**, not real voice or produced video. Real audio and unpublished plans must stay outside the public repo. See [storyboard contract and upstream Avenox integration](docs/narration-storyboard.md).
+
 ## Quick start
 
 Requirements: Node.js 22+, pnpm 10+, and a machine able to run Chromium (Remotion installs/uses a supported browser).

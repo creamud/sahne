@@ -18,6 +18,12 @@
 
 Before designing new visual assets, search approved entries with `pnpm assets:search <local-catalog-dir> <query>`; use `--all` only for review. Keep real sidecars with Drive IDs or private production metadata outside this public repository. The catalog schema and parser are in `src/assets/`; see `docs/storage-and-assets.md`. This is **not** a Drive integration or a reason to build a DAM.
 
+## Narrated storyboard validation (metadata only)
+
+When an approved script and **real** recorded narration are available, use upstream Avenox tooling for ASR/rough cutting. It produces timestamps in **seconds** for speech **segments**; see `docs/narration-storyboard.md`. The local `pnpm storyboard:validate` command checks a timed transcript against a storyboard and a rights-cleared asset catalog. It does **not** transcribe, process audio or render final video.
+
+Never schedule visual cues using unverified pre-recording script timestamps. Corrections/retakes change the spoken timeline; use the actual post-edit recording. Keep any private transcript and audio outside the public repo. Don't claim synthetic fixtures constitute a real video proof.
+
 ## Stack
 Node.js 22+, pnpm 10+, TypeScript/React, Remotion 4 (pin `remotion` and all `@remotion/*` packages to exactly the same version), Zod.
 
