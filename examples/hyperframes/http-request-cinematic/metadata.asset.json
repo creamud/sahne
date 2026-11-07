@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "http-request-animation-v2",
+  "title": "Cinematic HTTP request journey (silent concept)",
+  "description": "Second version of the illustrative HTTP request B-roll: large editorial type, three isolated network nodes, moving request marker and a single 200 OK visual. Source authored, render and creator visual QA pending.",
+  "category": "motion-graphic",
+  "tags": [
+    "http",
+    "networking",
+    "client-server",
+    "request",
+    "cinematic",
+    "hyperframes"
+  ],
+  "reviewStatus": "draft",
+  "rights": {
+    "origin": "original",
+    "clearance": "review-needed",
+    "license": "creator-owned"
+  },
+  "location": {
+    "kind": "local",
+    "relativePath": "http-request-animation-v2/renders/preview.mp4"
+  },
+  "aspectRatio": "16:9",
+  "durationMs": 14500,
+  "editableSource": "http-request-animation-v2/source/index.html",
+  "createdFrom": "yesvus/sahne/examples/hyperframes/http-request-cinematic/index.html"
+}

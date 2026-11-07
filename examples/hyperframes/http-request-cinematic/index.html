@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en"
+  data-composition-variables='[
+    {"id":"channelAccent","type":"color","label":"Channel accent","default":"#efbd73"},
+    {"id":"channelBackground","type":"color","label":"Channel background","default":"#10191c"},
+    {"id":"channelForeground","type":"color","label":"Channel foreground","default":"#f0eee6"}
+  ]'>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=1920, height=1080"/>
+  <title>Sahne — One request, one journey (cinematic v2)</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <style>
+    :root {
+      --ground:var(--channelBackground, #10191c);
+      --ink:var(--channelForeground, #f0eee6);
+      --accent:var(--channelAccent, #efbd73);
+      --muted:#96a4a7;
+    }
+    *,*::before,*::after {box-sizing:border-box}
+    html,body {margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--ground)}
+    body {font-family:Arial,"Helvetica Neue",Helvetica,sans-serif}
+    #root {
+      position:relative;width:1920px;height:1080px;overflow:hidden;
+      background:radial-gradient(ellipse at 54% 55%,color-mix(in srgb,var(--ground) 85%,var(--ink) 15%) 0%,var(--ground) 69%);
+      color:var(--ink);
+    }
+    #root::after {
+      content:"";position:absolute;inset:0;pointer-events:none;z-index:30;
+      background:linear-gradient(90deg,rgba(0,0,0,.15),transparent 22%,transparent 78%,rgba(0,0,0,.15));
+    }
+    .shot {position:absolute;inset:0;opacity:0}
+    .serif {font-family:Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-.06em}
+    #intro .line-one {
+      position:absolute;left:180px;top:297px;font-size:166px;line-height:1.05;white-space:nowrap;
+    }
+    #intro .line-two {
+      position:absolute;left:176px;top:487px;font-size:165px;line-height:1.07;white-space:nowrap;
+    }
+    #intro .highlight {
+      display:inline-block;position:relative;padding:0 18px 8px 8px;
+      color:var(--ground);background:var(--accent);
+    }
+    #intro .mark {
+      position:absolute;left:180px;top:238px;height:8px;width:102px;background:var(--accent);
+    }
+
+    #diagram .headline {
+      position:absolute;top:190px;left:0;right:0;
+      text-align:center;font-size:98px;line-height:1.15;
+    }
+    #diagram .headline em {color:var(--accent);font-style:normal}
+    #route {
+      position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:visible;
+    }
+    #route .line-base {stroke:color-mix(in srgb,var(--ink) 27%,var(--ground) 73%);stroke-width:8;fill:none;stroke-linecap:round}
+    #route .line-active {stroke:var(--accent);stroke-width:8;fill:none;stroke-linecap:round;stroke-dasharray:1180;stroke-dashoffset:1180}
+    .station {
+      width:168px;height:168px;border:8px solid color-mix(in srgb,var(--ink) 45%,var(--ground) 55%);border-radius:50%;
+      position:absolute;top:420px;display:flex;align-items:center;justify-content:center;
+      background:color-mix(in srgb,var(--ground) 92%,var(--ink) 8%);
+      color:var(--ink);
+      transform:translate(-50%,0);
+    }
+    #station-client {left:364px}
+    #station-gateway {left:960px}
+    #station-server {left:1556px}
+    .station svg {width:86px;height:86px;fill:none;stroke:currentColor;stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+    .node-name {
+      position:absolute;top:637px;font-size:61px;font-weight:600;letter-spacing:-.04em;
+      transform:translateX(-50%);white-space:nowrap;
+    }
+    #name-client {left:364px}
+    #name-gateway {left:960px}
+    #name-server {left:1556px}
+    #travel-dot {
+      position:absolute;left:364px;top:492px;width:28px;height:28px;
+      background:var(--accent);border-radius:50%;transform:translateX(-50%);
+      box-shadow:0 0 0 12px rgba(239,189,115,.14),0 0 58px rgba(239,189,115,.52);
+      opacity:0;z-index:20;
+    }
+    #action {
+      position:absolute;left:0;right:0;bottom:171px;
+      font-family:Georgia,"Times New Roman",serif;
+      text-align:center;color:var(--accent);
+      font-size:89px;letter-spacing:-.045em;font-style:italic;opacity:0;
+    }
+    #outro .label {
+      position:absolute;left:0;right:0;top:241px;text-align:center;
+      font-family:Georgia,"Times New Roman",serif;
+      color:var(--ink);font-size:88px;letter-spacing:-.04em;
+    }
+    #outro .code {
+      position:absolute;left:0;right:0;top:384px;text-align:center;
+      font-family:Georgia,"Times New Roman",serif;
+      font-size:225px;letter-spacing:-.055em;color:var(--accent);
+    }
+    #outro .caption {
+      position:absolute;left:0;right:0;top:732px;text-align:center;
+      color:var(--ink);font-size:51px;letter-spacing:-.02em;
+    }
+  </style>
+</head>
+<body>
+  <main id="root" data-composition-id="main" data-start="0" data-duration="14.5" data-width="1920" data-height="1080" data-fps="30">
+    <section id="intro" class="shot clip" data-start="0" data-duration="3.7" data-track-index="0">
+      <div class="mark"></div>
+      <div class="line-one serif">Every click</div>
+      <div class="line-two serif">goes <span class="highlight">somewhere.</span></div>
+    </section>
+
+    <section id="diagram" class="shot clip" data-start="3.5" data-duration="7.7" data-track-index="1">
+      <div class="headline serif">One <em>request.</em> Three stops.</div>
+      <svg id="route" aria-hidden="true" viewBox="0 0 1920 1080">
+        <path class="line-base" d="M 364 504 L 1556 504"></path>
+        <path class="line-active" id="path-active" d="M 364 504 L 1556 504"></path>
+      </svg>
+      <div class="station" id="station-client" aria-hidden="true">
+        <svg viewBox="0 0 100 100"><rect x="13" y="19" width="74" height="52" rx="6"/><path d="M 5 81 H 95"/><path d="M 37 81 H 63"/></svg>
+      </div>
+      <div class="station" id="station-gateway" aria-hidden="true">
+        <svg viewBox="0 0 100 100"><path d="M 50 15 V 80"/><path d="M 50 45 H 20 V 75"/><path d="M 50 45 H 80 V 75"/><path d="M 11 75 H 29"/><path d="M 41 15 H 59"/><path d="M 71 75 H 89"/></svg>
+      </div>
+      <div class="station" id="station-server" aria-hidden="true">
+        <svg viewBox="0 0 100 100"><rect x="15" y="13" width="70" height="74" rx="5"/><path d="M 15 38 H 85 M 15 62 H 85"/><path d="M 29 25 H 33 M 29 50 H 33 M 29 75 H 33"/></svg>
+      </div>
+      <div class="node-name" id="name-client">Client</div>
+      <div class="node-name" id="name-gateway">Gateway</div>
+      <div class="node-name" id="name-server">Server</div>
+      <div id="travel-dot"></div>
+      <div id="action">Send.</div>
+    </section>
+
+    <section id="outro" class="shot clip" data-start="10.8" data-duration="3.7" data-track-index="2">
+      <div class="label">And the answer comes back.</div>
+      <div class="code">200 OK</div>
+      <div class="caption">An illustrative successful response.</div>
+    </section>
+  </main>
+
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({paused:true, defaults:{ease:"power3.out"}});
+
+    tl.set("#intro",{opacity:1},0);
+    tl.fromTo("#intro .mark",{scaleX:0,transformOrigin:"left center"},{scaleX:1,duration:.42},.12);
+    tl.fromTo(".line-one",{opacity:1,y:25},{opacity:1,y:0,duration:.76},0);
+    tl.fromTo(".line-two",{opacity:0,y:65},{opacity:1,y:0,duration:.78},.69);
+    tl.fromTo(".highlight",{clipPath:"inset(0 100% 0 0)"},{clipPath:"inset(0 0% 0 0)",duration:.73,ease:"power2.inOut"},1.45);
+    tl.to("#intro",{opacity:0,duration:.52,ease:"power2.inOut"},3.12);
+
+    tl.set("#diagram",{opacity:1},3.45);
+    tl.fromTo("#diagram .headline",{opacity:0,y:35},{opacity:1,y:0,duration:.62},3.60);
+    tl.fromTo(".line-base",{opacity:0},{opacity:1,duration:.52},4.02);
+    tl.fromTo(".station",{opacity:0,scale:.75},{opacity:1,scale:1,duration:.65,stagger:.16},4.02);
+    tl.fromTo(".node-name",{opacity:0,y:22},{opacity:1,y:0,duration:.65,stagger:.16},4.14);
+    tl.fromTo("#travel-dot",{opacity:0,scale:.5},{opacity:1,scale:1,duration:.38},4.67);
+    tl.to("#path-active",{strokeDashoffset:0,duration:4.98,ease:"none"},5.0);
+    tl.fromTo("#travel-dot",{x:0},{x:1192,duration:4.98,ease:"none"},5.0);
+    tl.to("#station-client",{scale:1.10,duration:.24},4.92);
+    tl.to("#station-client",{scale:1,duration:.30},6.36);
+    tl.to("#station-gateway",{scale:1.10,duration:.28},7.49);
+    tl.to("#station-gateway",{scale:1,duration:.30},8.6);
+    tl.to("#station-server",{scale:1.10,duration:.28},9.69);
+    tl.fromTo("#action",{opacity:0,y:22},{opacity:1,y:0,duration:.55},5.10);
+    tl.to("#action",{opacity:0,duration:.27},6.62);
+    tl.set("#action",{textContent:"Route."},6.94);
+    tl.to("#action",{opacity:1,duration:.38},7.08);
+    tl.to("#action",{opacity:0,duration:.28},8.83);
+    tl.set("#action",{textContent:"Respond."},9.0);
+    tl.to("#action",{opacity:1,duration:.35},9.13);
+    tl.to("#travel-dot",{opacity:0,duration:.3},10.10);
+    tl.to("#diagram",{opacity:0,duration:.48},10.64);
+
+    tl.set("#outro",{opacity:1},10.82);
+    tl.fromTo("#outro .label",{opacity:0,y:36},{opacity:1,y:0,duration:.66},10.97);
+    tl.fromTo("#outro .code",{opacity:0,y:65},{opacity:1,y:0,duration:.77},11.28);
+    tl.fromTo("#outro .caption",{opacity:0,y:26},{opacity:1,y:0,duration:.57},11.92);
+
+    window.__timelines.main = tl;
+    tl.seek(0);
+  </script>
+</body>
+</html>
