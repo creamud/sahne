@@ -24,6 +24,14 @@ When an approved script and **real** recorded narration are available, use upstr
 
 Never schedule visual cues using unverified pre-recording script timestamps. Corrections/retakes change the spoken timeline; use the actual post-edit recording. Keep any private transcript and audio outside the public repo. Don't claim synthetic fixtures constitute a real video proof.
 
+## Channel identity and template consistency
+
+Before adding a new graphic or template, read `docs/channel-style-and-templates.md`. **Channel is the stable creative identity; video projects pin a channel style revision and template versions; assets are reviewed outputs/sources.** Do not let a downloaded template override a channel's palette/typefaces or change recurring character identities. Keep character reference sheets and unpublished channel/video metadata private.
+
+For visual direction, prefer one dominant concept per shot, large typography, ample empty space and meaningful animation. Avoid faux-website dashboard cards, permanent UI chrome, dense captions, small technical labels and decorative progress bars in explanatory B-roll. The macOS window template is appropriate **only when actual software/UI is being explained**.
+
+Use upstream HyperFrames composition variables instead of a custom parameterized renderer. `pnpm template:variables` resolves approved content parameters plus pinned channel tokens for HyperFrames `--variables-file`; do not execute arbitrary marketplace template code or add a marketplace in v0.
+
 ## Stack
 Node.js 22+, pnpm 10+, TypeScript/React, Remotion 4 (pin `remotion` and all `@remotion/*` packages to exactly the same version), Zod.
 

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "macos-window-reveal",
+  "version": "1.0.0",
+  "title": "macOS-inspired window reveal",
+  "category": "ui-mockup",
+  "renderer": "hyperframes",
+  "entry": "index.html",
+  "license": "Sahne-owned / license pending",
+  "parameters": [
+    {
+      "key": "windowTitle",
+      "kind": "text",
+      "required": true
+    },
+    {
+      "key": "headline",
+      "kind": "text",
+      "required": true
+    }
+  ],
+  "channelStyleInputs": [
+    "background",
+    "foreground",
+    "accent",
+    "bodyFont"
+  ]
+}

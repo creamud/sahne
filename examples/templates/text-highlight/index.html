@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[
+  {"id":"headline","type":"string","label":"Opening phrase","default":"One small click."},
+  {"id":"highlight","type":"string","label":"Emphasized phrase","default":"One big journey."},
+  {"id":"channelAccent","type":"color","label":"Channel accent","default":"#efbd73"},
+  {"id":"channelBackground","type":"color","label":"Channel background","default":"#10191c"},
+  {"id":"channelForeground","type":"color","label":"Channel text","default":"#f0eee6"},
+  {"id":"channelDisplayFont","type":"string","label":"Display font","default":"Georgia"}
+]'>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920,height=1080">
+  <title>Sahne — large text highlight template</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <style>
+    :root {
+      --ground: var(--channelBackground, #10191c);
+      --ink: var(--channelForeground, #f0eee6);
+      --accent: var(--channelAccent, #efbd73);
+      --display: var(--channelDisplayFont, Georgia);
+    }
+    * {box-sizing:border-box}
+    html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--ground)}
+    #root{
+      position:relative;width:1920px;height:1080px;color:var(--ink);
+      background:radial-gradient(ellipse at 50% 50%,#1a272a,var(--ground) 75%);
+      font-family:var(--display),Georgia,serif;
+    }
+    #headline{position:absolute;left:145px;right:145px;top:316px;
+      font-size:127px;line-height:1.10;letter-spacing:-.055em;white-space:nowrap;
+      font-weight:400;opacity:0}
+    #highlight-wrap{position:absolute;left:139px;right:139px;top:510px;
+      height:190px;display:flex;align-items:center;opacity:0}
+    #highlighter{
+      position:absolute;top:0;bottom:0;left:0;width:1450px;
+      max-width:100%;background:var(--accent);transform-origin:left center;
+    }
+    #highlight-text{position:relative;z-index:1;color:var(--ground);padding:0 28px;
+      font-size:127px;letter-spacing:-.055em;font-weight:400;line-height:1.12;
+      white-space:nowrap}
+  </style>
+</head>
+<body>
+  <main id="root" data-composition-id="main" data-start="0"
+    data-duration="6" data-width="1920" data-height="1080" data-fps="30">
+    <h1 id="headline" class="clip" data-start="0" data-duration="6"
+      data-track-index="0" data-var-text="headline">One small click.</h1>
+    <div id="highlight-wrap" class="clip" data-start="0" data-duration="6" data-track-index="1">
+      <div id="highlighter"></div>
+      <div id="highlight-text" data-var-text="highlight">One big journey.</div>
+    </div>
+  </main>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl=gsap.timeline({paused:true});
+    tl.fromTo("#headline",{opacity:0,y:46},{opacity:1,y:0,duration:.78,ease:"power3.out"},.3);
+    tl.fromTo("#highlight-wrap",{opacity:0,y:55},{opacity:1,y:0,duration:.52,ease:"power3.out"},1.25);
+    tl.fromTo("#highlighter",{scaleX:0},{scaleX:1,duration:1.02,ease:"power3.inOut"},1.44);
+    tl.fromTo("#highlight-text",{opacity:0},{opacity:1,duration:.48},1.87);
+    tl.to(["#headline","#highlight-wrap"],{opacity:0,duration:.75},5.2);
+    window.__timelines.main=tl;
+    tl.seek(0);
+  </script>
+</body>
+</html>

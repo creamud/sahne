@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "channelId": "systems-explained",
+  "revision": 1,
+  "displayName": "Systems Explained (illustrative)",
+  "visual": {
+    "palette": {
+      "background": "#10191c",
+      "foreground": "#f0eee6",
+      "accent": "#efbd73"
+    },
+    "typography": {
+      "displayFont": "Georgia",
+      "bodyFont": "Arial",
+      "minimumReadablePxAt1080p": 44
+    },
+    "motion": "restrained",
+    "chromePolicy": "only-when-demonstrating-ui"
+  },
+  "characters": []
+}

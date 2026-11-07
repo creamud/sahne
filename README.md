@@ -38,6 +38,20 @@ The sample contains **synthetic metadata**, not real voice or produced video. Re
 
 A small [HyperFrames HTTP request animation](examples/hyperframes/http-request/README.md) demonstrates editable HTML/GSAP motion graphics rendered to a 14.5-second 1080p30 MP4 using an existing open-source renderer. It is **silent** and uses illustrative content. It demonstrates graphic production only; a real recorded narration and end-to-end integration are still tracked in [#24](https://github.com/yesvus/sahne/issues/24). No custom rendering engine is introduced.
 
+## Channel styles and reusable templates (first metadata contract)
+
+Channel identity (typography, colors, motion and character reference sheets) is **versioned and pinned per video**. Visual templates accept content variables but use the channel's style tokens, so an episode or newly downloaded template cannot silently change the channel's established look.
+
+Two initial HyperFrames-native examples are [large text highlight](examples/templates/text-highlight/index.html) and [macOS-inspired UI window](examples/templates/macos-window/index.html). These are **editable template sources**, not a marketplace or a complete editor.
+
+```bash
+pnpm template:variables examples/identity/channel.style.json \
+  examples/templates/text-highlight/template.template.json \
+  examples/templates/text-highlight/inputs.json
+```
+
+See [channel/style and template architecture](docs/channel-style-and-templates.md). No hosted service, template marketplace or automatic third-party code installation has been introduced.
+
 ## Quick start
 
 Requirements: Node.js 22+, pnpm 10+, and a machine able to run Chromium (Remotion installs/uses a supported browser).

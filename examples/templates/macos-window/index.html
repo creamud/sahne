@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[
+  {"id":"windowTitle","type":"string","label":"Window title","default":"Terminal"},
+  {"id":"headline","type":"string","label":"Main message","default":"Server ready."},
+  {"id":"channelAccent","type":"color","label":"Channel accent","default":"#efbd73"},
+  {"id":"channelBackground","type":"color","label":"Channel background","default":"#10191c"},
+  {"id":"channelForeground","type":"color","label":"Channel text","default":"#f0eee6"},
+  {"id":"channelBodyFont","type":"string","label":"Body font","default":"Arial"}
+]'>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920,height=1080">
+  <title>Sahne — macOS-inspired window reveal template</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <style>
+    :root{
+      --ground:var(--channelBackground,#10191c);
+      --ink:var(--channelForeground,#f0eee6);
+      --accent:var(--channelAccent,#efbd73);
+      --body:var(--channelBodyFont,Arial);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--ground)}
+    #root{
+      position:relative;width:1920px;height:1080px;background:radial-gradient(ellipse at 50% 50%,#243238,var(--ground));
+      font-family:var(--body),Arial,sans-serif;color:var(--ink)
+    }
+    #window{
+      position:absolute;left:215px;top:155px;width:1490px;height:770px;
+      border-radius:28px;overflow:hidden;background:#172126;
+      border:3px solid #62767b;box-shadow:0 70px 120px rgba(0,0,0,.4);
+      opacity:0;
+    }
+    #toolbar{
+      position:relative;width:100%;height:104px;display:flex;align-items:center;
+      justify-content:center;background:#303c41;
+      border-bottom:2px solid #5b6d73;
+    }
+    .traffic{position:absolute;left:38px;top:39px;display:flex;gap:19px}
+    .dot{width:24px;height:24px;border-radius:50%;background:#f2a297}
+    .dot:nth-child(2){background:#f0c56d}
+    .dot:nth-child(3){background:#91c7a2}
+    #window-title{font-size:43px;letter-spacing:-.025em;font-weight:600}
+    #content{padding:105px 94px 0}
+    #prompt{font-family:ui-monospace,Menlo,Monaco,monospace;font-size:52px;line-height:1.1;color:#aab9b9}
+    #prompt .dollar{color:var(--accent);margin-right:17px}
+    #main-message{
+      margin-top:70px;font-size:140px;letter-spacing:-.055em;line-height:1.2;
+      font-weight:650;color:var(--ink);white-space:nowrap;opacity:0
+    }
+    #success{position:absolute;left:95px;bottom:102px;width:0;height:11px;background:var(--accent)}
+    #cursor{display:inline-block;height:112px;width:13px;background:var(--accent);margin-left:24px;vertical-align:-15px}
+  </style>
+</head>
+<body>
+  <main id="root" data-composition-id="main"
+    data-start="0" data-duration="7" data-width="1920" data-height="1080" data-fps="30">
+    <section id="window" class="clip" data-start="0" data-duration="7" data-track-index="0">
+      <header id="toolbar">
+        <div class="traffic" aria-hidden="true"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        <div id="window-title" data-var-text="windowTitle">Terminal</div>
+      </header>
+      <div id="content">
+        <div id="prompt"><span class="dollar">$</span> deploy --status</div>
+        <div><span id="main-message" data-var-text="headline">Server ready.</span><span id="cursor"></span></div>
+      </div>
+      <div id="success"></div>
+    </section>
+  </main>
+  <script>
+    window.__timelines=window.__timelines||{};
+    const tl=gsap.timeline({paused:true});
+    tl.fromTo("#window",{opacity:0,y:85,scale:.94},{opacity:1,y:0,scale:1,duration:1.04,ease:"power3.out"},.2);
+    tl.fromTo("#prompt",{opacity:0,y:22},{opacity:1,y:0,duration:.46},1.32);
+    tl.fromTo("#main-message",{opacity:0,y:40},{opacity:1,y:0,duration:.81,ease:"power3.out"},2.13);
+    tl.fromTo("#success",{width:0},{width:840,duration:1.2,ease:"power2.inOut"},2.6);
+    tl.fromTo("#cursor",{opacity:0},{opacity:1,duration:.2},2.3);
+    tl.to("#cursor",{opacity:0,duration:.3},4.5);
+    tl.to("#cursor",{opacity:1,duration:.3},5.05);
+    tl.to("#window",{opacity:0,y:-35,duration:.62,ease:"power2.in"},6.35);
+    window.__timelines.main=tl;
+    tl.seek(0);
+  </script>
+</body>
+</html>

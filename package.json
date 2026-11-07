@@ -21,7 +21,8 @@
     "render:timeline:smoke": "remotion render src/index.ts SahneTimeline out/timeline-smoke.mp4 --props=./examples/two-scenes.json --frames=60-89 --codec=h264 --concurrency=2 --log=warn",
     "assets:validate": "tsx scripts/asset-catalog.ts validate",
     "assets:search": "tsx scripts/asset-catalog.ts search",
-    "storyboard:validate": "tsx scripts/validate-storyboard.ts"
+    "storyboard:validate": "tsx scripts/validate-storyboard.ts",
+    "template:variables": "tsx scripts/template-variables.ts"
   },
   "dependencies": {
     "remotion": "4.0.540",

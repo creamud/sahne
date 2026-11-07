@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "kinetic-text-highlight",
+  "version": "1.0.0",
+  "title": "Large-text highlight",
+  "category": "kinetic-type",
+  "renderer": "hyperframes",
+  "entry": "index.html",
+  "license": "Sahne-owned / license pending",
+  "parameters": [
+    {
+      "key": "headline",
+      "kind": "text",
+      "required": true
+    },
+    {
+      "key": "highlight",
+      "kind": "text",
+      "required": true
+    }
+  ],
+  "channelStyleInputs": [
+    "background",
+    "foreground",
+    "accent",
+    "displayFont"
+  ]
+}

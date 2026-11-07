@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "http-request-episode",
+  "title": "An HTTP request (illustrative)",
+  "style": {
+    "channelId": "systems-explained",
+    "revision": 1
+  },
+  "scriptPath": "script.md",
+  "voicePath": "audio/voice-original.wav",
+  "storyboardPath": "storyboard.json",
+  "templatePins": [
+    {
+      "id": "kinetic-text-highlight",
+      "version": "1.0.0"
+    },
+    {
+      "id": "macos-window-reveal",
+      "version": "1.0.0"
+    }
+  ]
+}
