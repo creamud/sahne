@@ -1,0 +1,95 @@
+name: HyperFrames template visual QA
+
+on:
+  pull_request:
+    paths:
+      - "examples/templates/**"
+      - "src/production/identity.ts"
+      - "scripts/template-variables.ts"
+      - ".github/workflows/templates-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: template-preview-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render-example-templates:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - name: Install frozen project dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install FFmpeg and ffprobe
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+
+      - name: Validate and render example templates using channel style variables
+        run: |
+          mkdir -p out
+          for template in text-highlight macos-window; do
+            workdir="/tmp/sahne-template-$template"
+            npm exec --yes --package=hyperframes@0.9.20 -- \
+              hyperframes init "$workdir" \
+              --example blank --skip-skills --non-interactive
+            cp "examples/templates/$template/index.html" "$workdir/index.html"
+
+            pnpm exec tsx scripts/template-variables.ts \
+              examples/identity/channel.style.json \
+              "examples/templates/$template/template.template.json" \
+              "examples/templates/$template/inputs.json" \
+              > "$workdir/channel-variables.json"
+            python3 -m json.tool "$workdir/channel-variables.json" >/dev/null
+
+            npm exec --yes --package=hyperframes@0.9.20 -- \
+              hyperframes check "$workdir"
+            npm exec --yes --package=hyperframes@0.9.20 -- \
+              hyperframes render "$workdir" --fps 30 --workers 2 \
+              --quality draft --strict \
+              --variables-file "$workdir/channel-variables.json" \
+              --output "$GITHUB_WORKSPACE/out/$template.mp4"
+          done
+
+      - name: Verify both template MP4s
+        run: |
+          python3 - <<'PY'
+          import json, subprocess
+          expected = {"text-highlight": 6.0, "macos-window": 7.0}
+          for name, duration in expected.items():
+              probe = json.loads(subprocess.check_output([
+                  "ffprobe", "-v", "error", "-of", "json",
+                  "-show_entries", "format=duration:stream=codec_name,width,height,r_frame_rate",
+                  f"out/{name}.mp4",
+              ], text=True))
+              stream = next(s for s in probe["streams"] if s.get("codec_name") == "h264")
+              assert (stream["width"], stream["height"], stream["r_frame_rate"]) == (1920, 1080, "30/1"), name
+              assert abs(float(probe["format"]["duration"]) - duration) < 0.1, name
+          PY
+
+      - name: Create contact-sheet previews
+        run: |
+          for template in text-highlight macos-window; do
+            ffmpeg -hide_banner -loglevel error -y \
+              -i "out/$template.mp4" \
+              -vf "fps=1/2,scale=640:-1,tile=3x2:padding=4:margin=4" \
+              -frames:v 1 "out/$template-contact-sheet.png"
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sahne-template-visual-qa
+          path: out/
+          if-no-files-found: warn
+          retention-days: 14

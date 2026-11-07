@@ -26,10 +26,10 @@
       background:radial-gradient(ellipse at 50% 50%,#1a272a,var(--ground) 75%);
       font-family:var(--display),Georgia,serif;
     }
-    #headline{position:absolute;left:145px;right:145px;top:316px;
+    #headline{position:absolute;left:145px;right:145px;top:286px;margin:0;
       font-size:127px;line-height:1.10;letter-spacing:-.055em;white-space:nowrap;
       font-weight:400;opacity:0}
-    #highlight-wrap{position:absolute;left:139px;right:139px;top:510px;
+    #highlight-wrap{position:absolute;left:139px;right:139px;top:560px;
       height:190px;display:flex;align-items:center;opacity:0}
     #highlighter{
       position:absolute;top:0;bottom:0;left:0;width:1450px;
@@ -53,11 +53,11 @@
   <script>
     window.__timelines = window.__timelines || {};
     const tl=gsap.timeline({paused:true});
-    tl.fromTo("#headline",{opacity:0,y:46},{opacity:1,y:0,duration:.78,ease:"power3.out"},.3);
+    tl.fromTo("#headline",{opacity:1,y:24},{opacity:1,y:0,duration:.78,ease:"power3.out"},0);
     tl.fromTo("#highlight-wrap",{opacity:0,y:55},{opacity:1,y:0,duration:.52,ease:"power3.out"},1.25);
     tl.fromTo("#highlighter",{scaleX:0},{scaleX:1,duration:1.02,ease:"power3.inOut"},1.44);
     tl.fromTo("#highlight-text",{opacity:0},{opacity:1,duration:.48},1.87);
-    tl.to(["#headline","#highlight-wrap"],{opacity:0,duration:.75},5.2);
+    // Hold readable text at full contrast until the enclosing clip ends.
     window.__timelines.main=tl;
     tl.seek(0);
   </script>

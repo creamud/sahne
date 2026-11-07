@@ -67,7 +67,8 @@ Both rely on [HyperFrames composition variables](https://github.com/heygen-com/h
 pnpm install --frozen-lockfile
 
 # Safe local source data, synthetic defaults only.
-pnpm template:variables \
+# Bypass pnpm lifecycle banners: HyperFrames needs a pure JSON file.
+pnpm exec tsx scripts/template-variables.ts \
   examples/identity/channel.style.json \
   examples/templates/text-highlight/template.template.json \
   examples/templates/text-highlight/inputs.json \
