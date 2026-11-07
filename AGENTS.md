@@ -1,7 +1,18 @@
 # Agent instructions — Sahne
 
 ## Mission
-Produce deterministic motion graphics and informative animations **from code**. Do not introduce diffusion-based video generation, prompt-to-video model APIs, a custom timeline editor, or cloud infrastructure without an explicit product decision.
+**Product mission:** support a human creator making narration-first YouTube videos with an agent-operated script → voice recording → timed transcript → storyboard → asset reuse/creation → render → review workflow. The creator supplies and approves the script and their own voice. See [docs/vision.md](docs/vision.md), [docs/production-workflow.md](docs/production-workflow.md), [docs/storage-and-assets.md](docs/storage-and-assets.md), and [#20](https://github.com/yesvus/sahne/issues/20).
+
+**Implementation today:** a deterministic Remotion scene renderer. Treat that as a component, not the full product. Prefer invoking/adapting proven tools such as Avenox Skills and existing renderers over duplicating them. Do not introduce diffusion video generation, a custom editor, cloud infrastructure, or new orchestration services without an explicit product decision.
+
+## Product workflow constraints
+
+- Use approved scripts for editorial intent, but align visuals to the **actual recorded audio** and corrected transcript timestamps.
+- Search/inspect approved cataloged assets before generating new B-roll or motion graphics. Track provenance, rights, stable asset IDs and editable source.
+- Human gates: script approval and final video QA/publishing; do not auto-publish.
+- `yesvus/sahne` is public: **never commit unpublished scripts, recordings, Drive file IDs, private storyboards, credentials or binary video archives**.
+- Tool/provider agnostic and local-first. Do not make Remotion vs HyperFrames migration decisions without a sample-based evaluation.
+- Treat `docs/vision.md` as the product direction and `docs/architecture.md` as the current renderer implementation. Re-triage legacy issues under [#1](https://github.com/yesvus/sahne/issues/1) against [#20](https://github.com/yesvus/sahne/issues/20).
 
 ## Stack
 Node.js 22+, pnpm 10+, TypeScript/React, Remotion 4 (pin `remotion` and all `@remotion/*` packages to exactly the same version), Zod.

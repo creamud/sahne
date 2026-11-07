@@ -1,6 +1,17 @@
 # Sahne
 
-**Code-driven motion graphics for educational videos.** Sahne turns structured content into deterministic, editable animations and MP4 clips. It is designed for coding agents, not diffusion-based video generation.
+**An agent-operated, narration-first video production workflow.** Sahne aims to turn creator-approved scripts and human-recorded narration into timed, reviewable YouTube videos with reusable B-roll and editable motion graphics. Reuse existing tools and cataloged assets before writing new renderers.
+
+> **Project status:** the existing implementation is a small Remotion-based scene renderer, **not** a complete narration-to-video pipeline. Product direction is tracked in [#20](https://github.com/yesvus/sahne/issues/20).
+
+## Product docs
+
+- [Vision and MVP](docs/vision.md)
+- [Narration-first workflow](docs/production-workflow.md)
+- [GitHub vs Drive / asset catalog](docs/storage-and-assets.md)
+- [Current renderer architecture](docs/architecture.md)
+
+**Creator flow:** brainstorm in ChatGPT → approve a script → record real voice → align the audio transcript → storyboard → reuse or generate visuals → render → QA → archive reusable assets. Keep unpublished scripts and media in a private production workspace, not this public repository.
 
 ## Quick start
 
@@ -28,7 +39,7 @@ pnpm render:smoke
 pnpm verify:smoke
 ```
 
-## Architecture
+## Current implementation — renderer baseline
 
 - **Scene specification:** versioned JSON validated with Zod.
 - **Visual implementation:** React components and frame-driven animation primitives.
@@ -37,7 +48,7 @@ pnpm verify:smoke
 
 See [development and CI](docs/development.md), [architecture](docs/architecture.md), and the [style guide](docs/style-guide.md) and [agent instructions](AGENTS.md).
 
-## Scope and licensing
+## Current renderer scope and licensing
 
 No diffusion/video-generation models, SaaS dashboard, Kubernetes, cloud render farm or custom timeline editor in v0.
 

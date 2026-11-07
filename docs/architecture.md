@@ -1,4 +1,8 @@
-# Architecture (v0)
+# Architecture — currently implemented scene renderer (v0)
+
+> **Scope notice:** this describes the existing renderer, **not** the full target product. Sahne's mission is the narration-first production workflow described in [vision](vision.md), [production workflow](production-workflow.md), and [asset storage](storage-and-assets.md). See [#20](https://github.com/yesvus/sahne/issues/20). Avoid interpreting a JSON → MP4 pipeline as an adequate end-to-end MVP.
+
+## Present implementation
 
 ```text
 JSON scene data ── Zod validation ──> React/Remotion composition
