@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "http-request-animation-v1",
+  "title": "HTTP request journey — client, gateway, server",
+  "description": "Fourteen-and-a-half-second silent, editable code-driven B-roll showing a hypothetical HTTP request route and an illustrative 200 OK response. Experimental animation; pending creator quality and rights review.",
+  "category": "motion-graphic",
+  "tags": [
+    "http",
+    "networking",
+    "client-server",
+    "request",
+    "gateway",
+    "hyperframes"
+  ],
+  "reviewStatus": "draft",
+  "rights": {
+    "origin": "original",
+    "clearance": "review-needed",
+    "license": "creator-owned"
+  },
+  "location": {
+    "kind": "local",
+    "relativePath": "http-request-animation-v1/renders/preview.mp4"
+  },
+  "aspectRatio": "16:9",
+  "durationMs": 14500,
+  "editableSource": "http-request-animation-v1/source/index.html",
+  "createdFrom": "yesvus/sahne/examples/hyperframes/http-request"
+}

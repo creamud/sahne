@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Sahne — Anatomy of an HTTP request</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <style>
+    :root {
+      --ground: #101820;
+      --panel: #19232c;
+      --line: #40515b;
+      --paper: #f2eee4;
+      --muted: #9aabae;
+      --accent: #efb961;
+    }
+    *,*::before,*::after { box-sizing:border-box }
+    html,body { margin:0; width:1920px; height:1080px; overflow:hidden; background:var(--ground); }
+    body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    #root {
+      position:relative; width:1920px; height:1080px; overflow:hidden;
+      background-color:var(--ground);
+      color:var(--paper);
+      background-image:
+        linear-gradient(rgba(190,208,212,.032) 1px, transparent 1px),
+        linear-gradient(90deg,rgba(190,208,212,.032) 1px, transparent 1px);
+      background-size:96px 96px;
+    }
+    #root::before {
+      content:"";position:absolute;top:0;bottom:0;left:106px;width:1px;background:#33414b;
+    }
+    #root::after {
+      content:"";position:absolute;top:0;bottom:0;right:106px;width:1px;background:#33414b;
+    }
+    .topbar { position:absolute;left:148px;right:148px;top:68px;display:flex;align-items:center;justify-content:space-between;z-index:20; }
+    .brand { display:flex;align-items:center;gap:20px;font-size:24px;font-weight:720;letter-spacing:.18em; }
+    .brand-mark { width:22px;height:22px;background:var(--accent);transform:rotate(45deg);border-radius:2px; }
+    .meta { font-size:18px;color:var(--muted);letter-spacing:.19em;font-weight:600; }
+    .eyebrow { font-size:21px;font-weight:700;letter-spacing:.27em;color:var(--accent); }
+    .serif { font-family:Georgia, "Times New Roman", serif;font-weight:400;letter-spacing:-.055em; }
+    section { position:absolute;inset:0; }
+    #intro { opacity:0; }
+    #intro .kicker { position:absolute;left:154px;top:308px; }
+    #intro h1 { position:absolute;left:148px;top:356px;max-width:1550px;margin:0;font-size:138px;line-height:1.08; }
+    #intro h1 .gold { color:var(--accent);font-style:italic; }
+    #intro .sub { position:absolute;left:154px;top:744px;font-size:26px;letter-spacing:.025em;color:var(--muted);max-width:940px;line-height:1.5; }
+    #intro .side { position:absolute;right:155px;top:750px;font-size:21px;color:var(--accent);letter-spacing:.12em;text-align:right;line-height:1.55; }
+    #diagram { opacity:0; }
+    #diagram .kicker { position:absolute;left:155px;top:246px; }
+    #diagram h2 { position:absolute;left:150px;top:288px;margin:0;font-size:72px;font-weight:600;letter-spacing:-.045em; }
+    #diagram .hint { position:absolute;right:154px;top:315px;font-size:20px;color:var(--muted);letter-spacing:.10em; }
+    .link { position:absolute;top:432px;height:2px;background:repeating-linear-gradient(90deg,#697b81 0 13px,transparent 13px 27px);opacity:.65; }
+    .link-one {left:552px;width:208px}
+    .link-two {left:1160px;width:220px}
+    .card { position:absolute;top:468px;width:400px;height:326px;padding:45px 42px;background:var(--panel);border:2px solid var(--line);border-radius:6px;opacity:0; }
+    #client { left:150px; }
+    #edge { left:760px; }
+    #server { left:1370px; }
+    .card small { color:var(--accent);font-size:18px;letter-spacing:.20em;font-weight:800; }
+    .card h3 { font-size:52px;letter-spacing:-.06em;margin:30px 0 14px;font-weight:650; }
+    .card p { margin:0;font-size:22px;line-height:1.45;color:var(--muted); }
+    .card .corner { position:absolute;right:30px;top:28px;font-size:30px;color:#9aabae; }
+    #packet { position:absolute;top:400px;left:276px;z-index:10;width:146px;height:58px;display:flex;align-items:center;justify-content:center;gap:13px;background:var(--accent);color:var(--ground);font-size:21px;font-weight:800;letter-spacing:.055em;border-radius:5px;opacity:0;box-shadow:0 0 0 10px rgba(239,185,97,.09); }
+    #packet span {font-size:23px}
+    .beat { position:absolute;left:154px;top:850px;font-size:23px;color:var(--paper);opacity:0; }
+    .beat b { color:var(--accent);font-weight:700; }
+    .beat .quiet {color:var(--muted);margin-left:18px;font-weight:400;}
+    #outro { opacity:0; }
+    #outro .eyebrow { position:absolute;left:155px;top:296px; }
+    #outro .status { position:absolute;left:144px;top:370px;margin:0;font-size:233px;line-height:1.12;color:var(--accent); }
+    #outro .result { position:absolute;left:154px;top:688px;font-size:33px;letter-spacing:-.01em;color:var(--paper); }
+    #outro .note { position:absolute;right:154px;top:714px;font-size:18px;line-height:1.6;color:var(--muted);text-align:right;letter-spacing:.10em; }
+    .bottom { position:absolute;left:154px;right:154px;bottom:74px;display:flex;align-items:center;justify-content:space-between;z-index:20;font-size:18px;color:var(--muted);letter-spacing:.14em;font-weight:650; }
+    .rule { position:absolute;bottom:118px;left:154px;right:154px;height:2px;background:#394953;z-index:20; }
+    #progress { position:absolute;top:0;left:0;width:100%;height:2px;transform-origin:left center;transform:scaleX(0);background:var(--accent); }
+  </style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="14.5" data-width="1920" data-height="1080" data-fps="30">
+  <div class="topbar">
+    <div class="brand"><div class="brand-mark"></div><span>SAHNE</span></div>
+    <div class="meta">SYSTEMS EXPLAINED <span style="color:var(--accent)">/</span> 01</div>
+  </div>
+
+  <section id="intro" class="clip" data-start="0" data-duration="3.5" data-track-index="0">
+    <div class="eyebrow kicker">BEHIND A SINGLE CLICK</div>
+    <h1 class="serif" id="intro-title">An HTTP request<br/><span class="gold">is a journey.</span></h1>
+    <p class="sub">Inside every click, a network moves.</p>
+    <div class="side">CODE → MOTION<br/>NO DIFFUSION</div>
+  </section>
+
+  <section id="diagram" class="clip" data-start="3.0" data-duration="8.0" data-track-index="1">
+    <div class="eyebrow kicker">THE ROUTE</div>
+    <h2>One request. Three stops.</h2>
+    <div class="hint">ILLUSTRATIVE FLOW / NOT A NETWORK TRACE</div>
+    <div class="link link-one"></div>
+    <div class="link link-two"></div>
+    <div class="card" id="client">
+      <small>01 / ORIGIN</small><div class="corner">↗</div>
+      <h3>Client</h3><p>Creates the request<br/>and sends it out.</p>
+    </div>
+    <div class="card" id="edge">
+      <small>02 / ROUTING</small><div class="corner">↔</div>
+      <h3>Gateway</h3><p>Receives and routes<br/>the message.</p>
+    </div>
+    <div class="card" id="server">
+      <small>03 / WORK</small><div class="corner">↗</div>
+      <h3>Server</h3><p>Processes the action<br/>and prepares a reply.</p>
+    </div>
+    <div id="packet"><span>→</span> GET</div>
+    <div class="beat" id="beat1"><b>01</b> <span class="quiet">The browser makes a request.</span></div>
+    <div class="beat" id="beat2"><b>02</b> <span class="quiet">The network routes it onward.</span></div>
+    <div class="beat" id="beat3"><b>03</b> <span class="quiet">The server handles it.</span></div>
+  </section>
+
+  <section id="outro" class="clip" data-start="10.45" data-duration="4.05" data-track-index="2">
+    <div class="eyebrow">THE REPLY</div>
+    <h2 class="serif status" id="status">200 OK.</h2>
+    <div class="result">A possible response. One complete round trip.</div>
+    <div class="note">ILLUSTRATIVE STATUS<br/>SILENT VISUAL PROTOTYPE</div>
+  </section>
+
+  <div class="rule"><div id="progress"></div></div>
+  <div class="bottom"><span>SAHNE / CODE-DRIVEN B-ROLL</span><span>1080P · 30 FPS · 14.5 SEC</span></div>
+</div>
+<script>
+  window.__timelines = window.__timelines || {};
+  const tl = gsap.timeline({paused:true, defaults:{ease:"power3.out"}});
+  const appear = (selector, when, amount=35) =>
+    tl.fromTo(selector,{opacity:0,y:amount},{opacity:1,y:0,duration:.72,ease:"power3.out"},when);
+
+  tl.set("#intro",{opacity:1},0);
+  appear("#intro .kicker",.18,18);
+  appear("#intro-title",.42,45);
+  appear("#intro .sub",.95,22);
+  appear("#intro .side",1.15,12);
+  tl.to("#intro",{opacity:0,duration:.55,ease:"power2.inOut"},2.95);
+
+  tl.set("#diagram",{opacity:1},3.12);
+  appear("#diagram .kicker",3.2,18);
+  appear("#diagram h2",3.34,26);
+  appear("#diagram .hint",3.5,12);
+  appear("#client",3.65,40);
+  appear("#edge",3.86,40);
+  appear("#server",4.07,40);
+  tl.fromTo("#packet",{opacity:0,scale:.85},{opacity:1,scale:1,duration:.45},4.28);
+  tl.to("#client",{borderColor:"#efb961",duration:.32},4.38);
+  appear("#beat1",4.46,15);
+  tl.to("#beat1",{opacity:0,duration:.22},5.75);
+  tl.to("#packet",{x:610,duration:1.5,ease:"power2.inOut"},5.28);
+  tl.to("#edge",{borderColor:"#efb961",duration:.3},6.72);
+  appear("#beat2",6.9,15);
+  tl.to("#client",{borderColor:"#40515b",duration:.3},7.06);
+  tl.to("#beat2",{opacity:0,duration:.2},8.1);
+  tl.to("#packet",{x:1220,duration:1.55,ease:"power2.inOut"},7.32);
+  tl.to("#server",{borderColor:"#efb961",duration:.32},8.78);
+  tl.to("#edge",{borderColor:"#40515b",duration:.3},9.0);
+  appear("#beat3",9.05,15);
+  tl.to("#packet",{opacity:0,scale:.75,duration:.28},9.35);
+  tl.to("#diagram",{opacity:0,duration:.52,ease:"power2.inOut"},10.42);
+
+  tl.set("#outro",{opacity:1},10.65);
+  appear("#outro .eyebrow",10.75,18);
+  appear("#status",11.04,55);
+  appear("#outro .result",11.6,18);
+  appear("#outro .note",11.85,18);
+  tl.fromTo("#progress",{scaleX:0},{scaleX:1,duration:14.5,ease:"none"},0);
+
+  window.__timelines.main = tl;
+  tl.seek(0);
+</script>
+</body>
+</html>

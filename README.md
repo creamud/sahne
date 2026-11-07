@@ -34,6 +34,10 @@ pnpm storyboard:validate examples/production/transcript.sample.json examples/pro
 
 The sample contains **synthetic metadata**, not real voice or produced video. Real audio and unpublished plans must stay outside the public repo. See [storyboard contract and upstream Avenox integration](docs/narration-storyboard.md).
 
+## Code-driven B-roll visual spike (silent)
+
+A small [HyperFrames HTTP request animation](examples/hyperframes/http-request/README.md) demonstrates editable HTML/GSAP motion graphics rendered to a 14.5-second 1080p30 MP4 using an existing open-source renderer. It is **silent** and uses illustrative content. It demonstrates graphic production only; a real recorded narration and end-to-end integration are still tracked in [#24](https://github.com/yesvus/sahne/issues/24). No custom rendering engine is introduced.
+
 ## Quick start
 
 Requirements: Node.js 22+, pnpm 10+, and a machine able to run Chromium (Remotion installs/uses a supported browser).
