@@ -14,6 +14,10 @@
 - Tool/provider agnostic and local-first. Do not make Remotion vs HyperFrames migration decisions without a sample-based evaluation.
 - Treat `docs/vision.md` as the product direction and `docs/architecture.md` as the current renderer implementation. Re-triage legacy issues under [#1](https://github.com/yesvus/sahne/issues/1) against [#20](https://github.com/yesvus/sahne/issues/20).
 
+## Asset catalog (v0)
+
+Before designing new visual assets, search approved entries with `pnpm assets:search <local-catalog-dir> <query>`; use `--all` only for review. Keep real sidecars with Drive IDs or private production metadata outside this public repository. The catalog schema and parser are in `src/assets/`; see `docs/storage-and-assets.md`. This is **not** a Drive integration or a reason to build a DAM.
+
 ## Stack
 Node.js 22+, pnpm 10+, TypeScript/React, Remotion 4 (pin `remotion` and all `@remotion/*` packages to exactly the same version), Zod.
 

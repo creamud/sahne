@@ -1,6 +1,6 @@
 # Storage and reusable assets
 
-> Decision for the initial, personal video-production workflow. Google Drive folder creation is a **separate action**; this document does not imply it exists yet.
+> Suggested portable storage contract for personal video production. The initial creator's Drive workspace has been initialized with `Ideas/`, `Videos/` and `Asset Library/`; each installation may use its own private location.
 
 ## Canonical systems of record
 
@@ -32,47 +32,18 @@ Sahne Production/
 │       └── exports/              # previews and final master
 └── Asset Library/
     └── <stable-asset-id>/
-        ├── asset.json
+        ├── metadata.asset.json
         ├── source/               # editable original, if available
         └── renders/              # reusable transparent/video/image variants
 ```
 
 This is **a convention, not a requirement to precreate every directory**. Start with Ideas, Videos and Asset Library; create per-video subfolders on demand. Do not depend on naming alone for machine discovery.
 
-## Minimum asset catalog record
+## Asset metadata contract
 
-The catalog is a set of small JSON sidecars, not a database. Example with dummy values:
+Every reusable asset may have a validated `*.asset.json` sidecar in its own private folder, recording its stable ID, purpose, tags, approval status, provenance, usage rights and file location. **Never commit private Drive IDs, unfinished scripts, or unpublished media to this public repo.**
 
-```json
-{
-  "schemaVersion": 1,
-  "id": "asset-network-request-flow-v1",
-  "title": "Client-server request flow",
-  "description": "Animated request/response between client and service",
-  "category": "motion-graphic",
-  "tags": ["networking", "request", "response", "systems"],
-  "kind": "editable-animation",
-  "aspectRatio": "16:9",
-  "durationMs": 6000,
-  "rights": {
-    "origin": "original",
-    "license": "creator-owned",
-    "attribution": null
-  },
-  "reviewStatus": "approved",
-  "location": {
-    "storage": "google-drive",
-    "fileId": "<private-file-id>",
-    "relativePath": "Asset Library/asset-network-request-flow-v1/"
-  },
-  "sha256": "<checksum-of-master-binary-or-source-archive>",
-  "createdFrom": "example-video/project.json"
-}
-```
-
-The above ID, values and file ID are examples, not a real uploaded asset. Keep actual private file IDs in the private catalog. A future public schema/example should remove access credentials, file identifiers and unpublished titles. For a real production asset, record owner, creation date and relevant source revision when known.
-
-An episode manifest references **`asset-network-request-flow-v1`**, not a transient local pathname. Asset IDs should remain stable; use a new version/ID for materially changed output rather than silently overwriting a reused clip.
+For the authoritative schema and usage example, see [the implemented local catalog CLI](#implemented-local-catalog-cli-v0) below and `src/assets/catalog.ts`. This format is independent of the renderer. Episode manifests should reference a **stable asset ID**, not a transient machine path; create a new version ID for materially changed assets.
 
 ## Search, reuse and lifecycle
 
@@ -91,3 +62,46 @@ No bespoke DAM, semantic/vector database, Drive auto-sync daemon, Google Sheets 
 ## Migration path if needed
 
 When multiple productions or multiple people make manual catalog tracking painful, move *metadata only* to a private Git repository or database. Leave binary originals in Drive or another object store. Preserve stable asset IDs so project manifests survive that migration.
+
+## Implemented local catalog CLI (v0)
+
+The first asset-discovery slice reads **private local copies** of `*.asset.json` sidecar files. It does not call the Google Drive API or upload assets. You can download/sync an `Asset Library` folder outside this public repository and point the CLI to it:
+
+```bash
+pnpm assets:validate "/path/to/Sahne Production/Asset Library"
+pnpm assets:search "/path/to/Sahne Production/Asset Library" "network request"
+pnpm assets:search "/path/to/Sahne Production/Asset Library" "network request" --all
+```
+
+- `validate` recursively checks schema validity and rejects duplicate stable IDs; valid empty directories report `count: 0`.
+- `search` matches all query words across title, tags and description, case-insensitively. It emits JSON on success for agent consumption; errors are JSON on stderr with nonzero exit status. Blank/punctuation-only queries are rejected; results are sorted deterministically. No semantic model or database is used.
+- By default only `approved` assets with `cleared` rights are returned. `--all` is **for inspection**, not permission to reuse draft or unlicensed assets.
+- The metadata location is either `{"kind":"local","relativePath":"..."}` or a **private** Google Drive reference. Any actual Drive file ID belongs in a private sidecar, never in the public repository.
+- `editableSource` is an optional path relative to the asset's own workspace. Reference an asset by its stable `id` in future project manifests; catalog lookup should resolve that ID to its location.
+
+Minimal metadata example (**illustrative only**, not an asset that has been produced or uploaded):
+
+```json
+{
+  "schemaVersion": 1,
+  "id": "client-request-flow-v1",
+  "title": "Client-server request flow",
+  "description": "Animated HTTP request-response explainer",
+  "category": "motion-graphic",
+  "tags": ["networking", "http", "request"],
+  "reviewStatus": "draft",
+  "rights": {
+    "origin": "original",
+    "clearance": "review-needed",
+    "license": "creator-owned"
+  },
+  "location": {
+    "kind": "local",
+    "relativePath": "client-request-flow-v1/renders/overlay.webm"
+  },
+  "aspectRatio": "16:9",
+  "durationMs": 6000
+}
+```
+
+The **validated `*.asset.json` schema** in `src/assets/catalog.ts` is the implementation contract. Assets are initially tracked manually; automatic indexing, tagging and synchronization will only be added when justified by real footage reuse.

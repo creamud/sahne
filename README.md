@@ -13,6 +13,17 @@
 
 **Creator flow:** brainstorm in ChatGPT → approve a script → record real voice → align the audio transcript → storyboard → reuse or generate visuals → render → QA → archive reusable assets. Keep unpublished scripts and media in a private production workspace, not this public repository.
 
+## Asset catalog (first implemented production component)
+
+Sahne can validate and search local copies of private reusable-asset metadata. It does **not** integrate with the Drive API or render narrated videos yet.
+
+```bash
+pnpm assets:validate "/path/to/Asset Library"
+pnpm assets:search "/path/to/Asset Library" "client server"
+```
+
+The CLI reads `*.asset.json` sidecars and returns JSON on success; on failure it writes a JSON `{ "error": "..." }` object to stderr and exits nonzero. Search defaults to **approved assets with cleared rights**, and `--all` includes drafts for inspection. Keep private files and Drive IDs out of this public repository. See [asset catalog format and storage](docs/storage-and-assets.md).
+
 ## Quick start
 
 Requirements: Node.js 22+, pnpm 10+, and a machine able to run Chromium (Remotion installs/uses a supported browser).
