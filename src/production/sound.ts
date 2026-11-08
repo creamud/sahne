@@ -41,11 +41,17 @@ const resolveExistingMedia = async (root: string, unsafeRelativePath: string): P
   return candidate;
 };
 
+// Keep FFmpeg from following secondary inputs referenced by playlists or manifests.
+const localAudioInputOptions = [
+  '-format_whitelist', 'wav,aiff,caf,flac,mp3,aac,ogg,mov,m4a,mp4,webm,matroska',
+  '-protocol_whitelist', 'file',
+];
+
 const probeAudio = async (file: string): Promise<number> => {
   const {stdout} = await run('ffprobe', [
     '-v', 'error', '-select_streams', 'a:0',
     '-show_entries', 'stream=codec_name,channels:format=duration',
-    '-of', 'json', file,
+    '-of', 'json', ...localAudioInputOptions, file,
   ]);
   let parsed: {streams?: Array<{codec_name?: string}>; format?: {duration?: string}};
   try {
@@ -155,8 +161,8 @@ export const mixNarrationWithEffects = async ({
   await mkdir(dirname(dest), {recursive: true});
   await run('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-nostdin', '-n',
-    '-i', voice,
-    ...sources.flatMap((source) => ['-i', source]),
+    ...localAudioInputOptions, '-i', voice,
+    ...sources.flatMap((source) => [...localAudioInputOptions, '-i', source]),
     '-filter_complex', filters.join(';'),
     '-map', '[out]', '-ar', '48000', '-ac', '2', '-c:a', 'pcm_s24le', dest,
   ]);
