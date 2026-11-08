@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 import {execFileSync} from 'node:child_process';
-import {statSync} from 'node:fs';
+import {mkdirSync, renameSync, rmSync, statSync} from 'node:fs';
+import {join} from 'node:path';
 
-const filename = process.argv[2] ?? 'out/smoke.mp4';
+const [filename = 'out/smoke.mp4', option, outputDirectory, ...extra] = process.argv.slice(2);
+if (option !== undefined && (option !== '--stills' || !outputDirectory || extra.length)) {
+  throw new Error('Usage: node scripts/verify-render.mjs [video.mp4] [--stills new-output-directory]');
+}
 const stats = statSync(filename);
 if (stats.size < 1024) {
   throw new Error(`Rendered file is unexpectedly small (${stats.size} bytes): ${filename}`);
@@ -42,3 +46,29 @@ if (stream.nb_read_frames === undefined || Number(stream.nb_read_frames) !== 30)
   throw new Error(`Unexpected decoded frame count: ${stream.nb_read_frames} (expected 30)`);
 }
 console.log(`Verified H.264 ${stream.width}×${stream.height} @ 30 fps, ${duration}s (${stats.size} bytes).`);
+
+if (outputDirectory) {
+  const frames = [
+    {index: 0, filename: 'beginning.png'},
+    {index: 15, filename: 'middle.png'},
+    {index: 29, filename: 'end.png'},
+  ];
+  mkdirSync(outputDirectory);
+  try {
+    execFileSync('ffmpeg', [
+      '-v', 'error', '-nostdin', '-xerror', '-i', filename, '-map', '0:v:0',
+      '-vf', 'select=' + frames.map(({index}) => 'eq(n\\,' + index + ')').join('+'),
+      '-frames:v', String(frames.length), '-fps_mode', 'passthrough',
+      join(outputDirectory, 'frame-%d.png'),
+    ], {stdio: 'inherit'});
+    for (const [index, frame] of frames.entries()) {
+      const extracted = join(outputDirectory, 'frame-' + (index + 1) + '.png');
+      if (statSync(extracted).size === 0) throw new Error('Empty inspection frame: ' + frame.filename);
+      renameSync(extracted, join(outputDirectory, frame.filename));
+    }
+  } catch (error) {
+    rmSync(outputDirectory, {recursive: true, force: true});
+    throw error;
+  }
+  console.log('Saved inspection frames 0, 15 and 29 in ' + outputDirectory + '.');
+}
