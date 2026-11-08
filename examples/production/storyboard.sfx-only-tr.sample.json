@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "language": "tr",
+  "fps": 30,
+  "durationMs": 14500,
+  "beats": [
+    {
+      "id": "intro",
+      "startMs": 0,
+      "endMs": 3500,
+      "treatment": "overlay",
+      "cueText": "Tek tık. Bir yolculuk.",
+      "source": {
+        "kind": "generate",
+        "brief": "Büyük Montserrat yazı ve tek vurgulu geçiş."
+      }
+    },
+    {
+      "id": "request-journey",
+      "startMs": 3500,
+      "endMs": 10800,
+      "treatment": "cutaway",
+      "cueText": "İstemci → Ağ → Sunucu",
+      "source": {
+        "kind": "generate",
+        "brief": "Tek hareket eden noktayla üç düğümlü ağ diyagramı."
+      }
+    },
+    {
+      "id": "response",
+      "startMs": 10800,
+      "endMs": 14500,
+      "treatment": "overlay",
+      "cueText": "Yanıt geri döner. 200 OK",
+      "source": {
+        "kind": "generate",
+        "brief": "Başarılı yanıt için büyük, sade tipografi."
+      }
+    }
+  ],
+  "soundCues": [
+    {
+      "id": "title-accent",
+      "assetId": "synthetic-click-v1",
+      "atMs": 1480,
+      "durationMs": 200,
+      "gainDb": -6,
+      "visualBeatId": "intro"
+    },
+    {
+      "id": "request-sent",
+      "assetId": "synthetic-click-v1",
+      "atMs": 5010,
+      "durationMs": 200,
+      "gainDb": -8,
+      "visualBeatId": "request-journey"
+    },
+    {
+      "id": "gateway-pass",
+      "assetId": "synthetic-click-v1",
+      "atMs": 7510,
+      "durationMs": 200,
+      "gainDb": -10,
+      "visualBeatId": "request-journey"
+    },
+    {
+      "id": "response-arrival",
+      "assetId": "synthetic-click-v1",
+      "atMs": 11520,
+      "durationMs": 200,
+      "gainDb": -7,
+      "visualBeatId": "response"
+    }
+  ]
+}

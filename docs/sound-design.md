@@ -1,6 +1,6 @@
-# Sound design — narration first
+# Sound design — SFX-only or optional narration
 
-> Initial implementation for [#35](https://github.com/yesvus/sahne/issues/35). The creator's original narration is the dominant audio. A sound effect is an optional, timed supporting event — not something placed on every animation.
+> Initial implementation for [#35](https://github.com/yesvus/sahne/issues/35). For narrated projects the supplied voice (creator-recorded **or imported**) is primary. SFX-only projects have no spoken audio at all. Do not put sound effects on every animation.
 
 ## Existing tools, not another audio editor
 
@@ -10,7 +10,7 @@ Candidate media packs: [Kenney Interface Sounds](https://kenney.nl/assets/interf
 
 ## Same video, two languages
 
-Each localized rendition has its **own** `script`, `narration`, `transcript`, `storyboard`, `soundCues` and export. The *channel style*, visual templates and approved sound assets can be shared, but **timecodes must come from the specific recording in the specific language**. A Turkish sentence may be longer than the English equivalent. Do not rescale another language's cues blindly.
+Each localized edition has its own on-screen text, `storyboard`, `soundCues` and export. **Only narrated editions** need script, provided voice and transcript. SFX-only clips require none of these speech inputs. The *channel style*, visual templates and approved sound assets can be shared, but **timecodes must come from the specific recording in the specific language**. A Turkish sentence may be longer than the English equivalent. Do not rescale another language's cues blindly.
 
 Avenox's published `transcribe.py` is currently configured for **Turkish on Apple Silicon** and returns **segment-level** timestamps; explicit English language setup/ASR adapter is needed for the English recording. The examples below use invented transcripts and are not proof of real bilingual ASR.
 
@@ -18,7 +18,7 @@ The stereo master is prepared with FFmpeg; an editor can later mux this alongsid
 
 ## Metadata contract
 
-`storyboard.json` now accepts **optional** `narration.language: "tr" | "en"` and `soundCues[]` (existing visual-only projects remain valid). An example cue:
+`storyboard.json` accepts `language: "tr" | "en"` even without narration, optional `narration.language` and `soundCues[]` (existing visual-only projects remain valid). An example cue:
 
 ```json
 {
@@ -31,10 +31,10 @@ The stereo master is prepared with FFmpeg; an editor can later mux this alongsid
 }
 ```
 
-- `atMs` anchors the effect **in the recording's timeline**, not the draft script.
+- `atMs` anchors the effect on the **video timeline**; in narrated editions that timeline must match the actual recording, not a draft script.
 - `visualBeatId` optionally explains the intended screen event; its timestamp must fall inside the referenced visual beat.
 - Effect clips are capped at 30 seconds in this v0 contract; gains may range from **−48 to −6 dB** (never silently full volume).
-- The cue must end within the recorded narration timeline, and the asset must exist in the **approved, rights-cleared, audio** catalog.
+- The cue must end within the selected video timeline, and the asset must exist in the **approved, rights-cleared, audio** catalog.
 - `atMs` should ordinarily coincide with a meaningful event (click, reveal, movement, transition); avoid sound on every text movement.
 
 SFX **are assets**, not templates: same stable ID, rights/license/provenance and asset files as other reusable items. Use `category: audio` and semantic tags, e.g., `click`, `whoosh`, `impact`, `transition`. Channel-level sonic identity (preferred family, loudness, density) can initially be described in a private channel style note; no new database/schema required.
@@ -55,9 +55,9 @@ pnpm storyboard:validate \
   examples/production/sound-catalog
 ```
 
-These are **metadata-only** illustrative examples. They deliberately contain no genuine voice recording or imported sound pack. The fictitious approved asset record in `sound-catalog` is a *test fixture*, **not** authorization to use an absent real sound file.
+These are **metadata-only** illustrative examples. For a **voice-free** project validate with `pnpm storyboard:validate - examples/production/storyboard.sfx-only-tr.sample.json examples/production/sound-catalog`: the `-` explicitly means there is no transcript. No genuine voice recording or imported sound pack is included. The fictitious approved asset record in `sound-catalog` is a *test fixture*, **not** authorization to use an absent real sound file.
 
-With your actual **private, locally accessible** post-edit narration and an approved SFX catalog containing real audio:
+With an approved SFX catalog and an **optional private voice file** (when that project calls for narration):
 
 ```bash
 pnpm audio:mix \
@@ -71,7 +71,7 @@ The tool rejects missing media, catalog path traversal/symlink escapes, non-audi
 
 Audio inputs must be self-contained files in supported containers (WAV, AIFF, CAF, FLAC, MP3, AAC, Ogg, MOV/MP4/M4A, Matroska or WebM). Playlists and manifests are rejected during probing and decoding.
 
-Current FFmpeg mix: 48kHz stereo 24-bit WAV, explicit effect gains, non-normalizing `amix`, peak limiter. This protects against obvious summation peaks but does **not** guarantee consistent perceived loudness: listen and inspect loudness/true peak before publication. Do not mechanically target an LUFS number without understanding delivery normalization and spoken-word intelligibility.
+Current FFmpeg mix: 48kHz stereo 24-bit WAV, explicit effect gains, non-normalizing `amix`, peak limiter. In SFX-only mode, FFmpeg's native `anullsrc` supplies the timing base, **not generated speech**. This protects against obvious summation peaks but does **not** guarantee consistent perceived loudness: listen and inspect loudness/true peak before publication. Do not mechanically target an LUFS number without understanding delivery normalization and spoken-word intelligibility.
 
 ## Final video export
 

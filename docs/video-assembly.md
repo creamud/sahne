@@ -1,6 +1,6 @@
 # Final video assembly — reuse existing FFmpeg and Avenox
 
-> **Status:** small, tested post-render *mux* step for #37, not a complete editor or human-narrated production. The actual user-voiced pilot remains #24.
+> **Status:** tested post-render *mux* step for both **SFX-only videos** and optionally narrated productions, not a new editor. Audio may be SFX-only or externally supplied voice plus SFX. The actual user-voiced pilot remains #24.
 
 ## Why this is a separate step
 

@@ -1,0 +1,20 @@
+{
+  "channelBackground": "#10191c",
+  "channelForeground": "#f0eee6",
+  "channelAccent": "#efbd73",
+  "channelDisplayFont": "Montserrat",
+  "introLine": "One click.",
+  "introPrefix": "One ",
+  "introHighlight": "journey.",
+  "journeyLead": "One ",
+  "journeyFocus": "request.",
+  "journeyTail": " Three stops.",
+  "nodeClient": "Client",
+  "nodeGateway": "Network",
+  "nodeServer": "Server",
+  "actionSend": "Send.",
+  "actionRoute": "Route.",
+  "actionRespond": "Respond.",
+  "outroLead": "The answer returns.",
+  "outroCaption": "An example of a successful response."
+}

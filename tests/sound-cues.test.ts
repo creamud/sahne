@@ -56,7 +56,7 @@ const storyboard = {
 } as const;
 
 test('bilingual narration is explicit and both languages may have different SFX timings', () => {
-  assert.equal(storyboardSchema.parse(storyboard).narration.language, 'tr');
+  assert.equal(storyboardSchema.parse(storyboard).narration?.language, 'tr');
   const english = {
     ...storyboard,
     narration: {...storyboard.narration, language: 'en'},
@@ -64,7 +64,7 @@ test('bilingual narration is explicit and both languages may have different SFX 
       ...cue, atMs: cue.atMs + 100,
     })),
   };
-  assert.equal(storyboardSchema.parse(english).narration.language, 'en');
+  assert.equal(storyboardSchema.parse(english).narration?.language, 'en');
   assert.notEqual(english.soundCues[0].atMs, storyboard.soundCues[0].atMs);
   assert.equal(
     validateNarratedStoryboard(english, transcript, [audioAsset]).storyboard.soundCues?.length,

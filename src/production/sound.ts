@@ -85,9 +85,11 @@ export const mixNarrationWithEffects = async ({
   storyboard: Storyboard;
   assets: readonly AssetRecord[];
 }) => {
-  const voice = await resolveExistingMedia(projectDirectory, storyboard.narration.voicePath);
-  const voiceDuration = await probeAudio(voice);
-  if (Math.abs(voiceDuration - storyboard.durationMs) > 100) {
+  const voice = storyboard.narration
+    ? await resolveExistingMedia(projectDirectory, storyboard.narration.voicePath)
+    : undefined;
+  const voiceDuration = voice ? await probeAudio(voice) : storyboard.durationMs;
+  if (voice && Math.abs(voiceDuration - storyboard.durationMs) > 100) {
     throw new Error(
       'Recorded narration duration (' + Math.round(voiceDuration) +
       'ms) differs from storyboard duration (' + storyboard.durationMs +
@@ -162,7 +164,9 @@ export const mixNarrationWithEffects = async ({
   await mkdir(dirname(dest), {recursive: true});
   await run('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-nostdin', '-n',
-    ...localAudioInputOptions, '-i', voice,
+    ...(voice
+      ? [...localAudioInputOptions, '-i', voice]
+      : ['-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo']),
     ...sources.flatMap((source) => [...localAudioInputOptions, '-i', source]),
     '-filter_complex', filters.join(';'),
     '-map', '[out]', '-ar', '48000', '-ac', '2', '-c:a', 'pcm_s24le', dest,
@@ -176,9 +180,12 @@ export const mixNarrationWithEffects = async ({
   return {
     outputPath: dest,
     durationMs: Math.round(mixedDuration),
-    language: storyboard.narration.language ?? 'unspecified',
+    mode: voice ? 'narrated' : 'sfx-only',
+    language: storyboard.language ?? storyboard.narration?.language ?? 'unspecified',
     effectCount: cues.length,
     reusedAssetIds: [...new Set(cues.map(({assetId}) => assetId))],
-    note: 'Synthetic/real media mixed; human listening, loudness and copyright QA still required.',
+    note: voice
+      ? 'Voice + SFX mixed; listening, loudness and rights QA still required.'
+      : 'SFX-only track mixed; no spoken voice was required or generated.',
   };
 };
