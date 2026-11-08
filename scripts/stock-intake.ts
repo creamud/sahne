@@ -1,7 +1,7 @@
 import {execFile} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
-import {copyFile, lstat, mkdir, mkdtemp, readFile, realpath, rename, rm, stat, writeFile} from 'node:fs/promises';
+import {chmod, copyFile, lstat, mkdir, mkdtemp, readFile, realpath, rename, rm, stat, writeFile} from 'node:fs/promises';
 import {extname, join, resolve} from 'node:path';
 import {promisify} from 'node:util';
 import {z} from 'zod';
@@ -9,9 +9,15 @@ import {assetSchema} from '../src/assets/catalog';
 import {loadAssetCatalog} from '../src/assets/store';
 
 const run = promisify(execFile);
+const MAX_MEDIA_BYTES = 512 * 1024 * 1024;
+const MAX_DIMENSION = 8192;
+const MAX_DURATION_MS = 10 * 60 * 1000;
+const mediaRun = (binary: string, args: string[]) => run(binary, args, {timeout: 60_000, maxBuffer: 1024 * 1024});
+const exists = async (path: string) => { try { await lstat(path); return true; } catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false; throw error; } };
+
 const json = async (file: string): Promise<unknown> => JSON.parse(await readFile(file, 'utf8'));
 const writeJson = (file: string, value: unknown) =>
-  writeFile(file, JSON.stringify(value, null, 2) + '\n', {flag: 'wx'});
+  writeFile(file, JSON.stringify(value, null, 2) + '\n', {flag: 'wx', mode: 0o600});
 const webUrl = z.url().refine((value) => {
   const url = new URL(value);
   return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password;
@@ -45,7 +51,7 @@ const regularFile = async (file: string) => {
 
 const inspectMedia = async (file: string, still: boolean) => {
   const input = still ? ['-f', 'image2', '-pattern_type', 'none'] : ['-f', 'mov', '-enable_drefs', '0'];
-  const {stdout} = await run('ffprobe', [
+  const {stdout} = await mediaRun('ffprobe', [
     '-v', 'error', '-protocol_whitelist', 'file', ...input,
     '-show_entries', 'stream=codec_type,width,height,duration:stream_disposition=attached_pic',
     '-of', 'json', file,
@@ -55,12 +61,13 @@ const inspectMedia = async (file: string, still: boolean) => {
   if (video.length !== 1 || video[0].disposition?.attached_pic || !(video[0].width > 0 && video[0].height > 0)) {
     throw new Error('Expected exactly one usable visual stream');
   }
-  await run('ffmpeg', [
+  if (video[0].width > MAX_DIMENSION || video[0].height > MAX_DIMENSION) throw new Error('Media dimensions exceed limit');
+  await mediaRun('ffmpeg', [
     '-v', 'error', '-xerror', '-nostdin', '-protocol_whitelist', 'file',
     ...input, '-i', file, '-map', '0:v:0', '-an', '-f', 'null', '-',
   ]);
   const durationMs = Math.round(Number(video[0].duration) * 1000);
-  if (!still && !(durationMs > 0 && Number.isSafeInteger(durationMs))) {
+  if (!still && (!(durationMs > 0 && Number.isSafeInteger(durationMs)) || durationMs > MAX_DURATION_MS)) {
     throw new Error('Video requires a positive, finite stream duration');
   }
   return still ? undefined : durationMs;
@@ -72,11 +79,14 @@ const importCandidate = async (catalog: string, input: string, sourceFile: strin
   const extension = extname(file).toLowerCase();
   const still = ['.png', '.jpg', '.jpeg'].includes(extension);
   if (!still && extension !== '.mp4') throw new Error('Import a PNG, JPEG or MP4');
+  if ((await stat(file)).size > MAX_MEDIA_BYTES) throw new Error('Media exceeds size limit');
   const staging = await mkdtemp(join(catalog, '.stock-import-'));
+  await chmod(staging, 0o700);
   try {
     const mediaName = 'media' + extension;
     const staged = join(staging, mediaName);
     await copyFile(file, staged);
+    await chmod(staged, 0o600);
     const sha256 = await hashFile(staged);
     const id = 'stock-' + sha256;
     const existing = (await loadAssetCatalog(catalog)).find((asset) => asset.sha256 === sha256);
@@ -112,7 +122,7 @@ const reviewCandidate = async (catalog: string, id: string, decision: string, re
   if (await realpath(directory) !== directory) throw new Error('Candidate directory cannot be a symlink');
   // mkdir is an exclusive review lock, so simultaneous decisions cannot overwrite each other.
   const lock = join(directory, '.review-lock');
-  await mkdir(lock);
+  await mkdir(lock, {mode: 0o700});
   try {
     const sidecar = await regularFile(join(directory, 'candidate.asset.json'));
     const asset = assetSchema.parse(await json(sidecar));
@@ -121,6 +131,7 @@ const reviewCandidate = async (catalog: string, id: string, decision: string, re
         asset.location.kind !== 'local' || !new RegExp('^' + id + '/media\\.(png|jpe?g|mp4)$').test(asset.location.relativePath)) {
       throw new Error('Candidate metadata and receipt do not match');
     }
+    if (await exists(join(directory, 'review-receipt.json'))) throw new Error('Candidate already has a durable review decision');
     if (asset.reviewStatus !== 'draft') throw new Error('Candidate has already been reviewed');
     if (decision === 'approve') {
       if (!receipt.source.licenseUrl || /^(unknown|unclear|unverified|pending|n\/a)$/i.test(receipt.source.license)) {
@@ -156,7 +167,7 @@ const reviewCandidate = async (catalog: string, id: string, decision: string, re
 const main = async () => {
   const [action, directory, ...args] = process.argv.slice(2);
   if (directory && action === 'import' && args.length === 2) {
-    await mkdir(directory, {recursive: true});
+    await mkdir(directory, {recursive: true, mode: 0o700});
     return importCandidate(await realpath(directory), args[0], args[1]);
   }
   if (directory && action === 'review' && args.length === 3) {
