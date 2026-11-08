@@ -24,7 +24,8 @@
     "storyboard:validate": "tsx scripts/validate-storyboard.ts",
     "template:variables": "tsx scripts/template-variables.ts",
     "audio:mix": "tsx scripts/mix-audio.ts",
-    "video:assemble": "tsx scripts/assemble-video.ts"
+    "video:assemble": "tsx scripts/assemble-video.ts",
+    "captions:export": "tsx scripts/export-captions.ts"
   },
   "dependencies": {
     "remotion": "4.0.540",

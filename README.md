@@ -100,6 +100,10 @@ This validates the **SFX-only** storyboard without inventing a speech transcript
 
 See [speech-free/localized workflow and optional voice inputs](docs/audio-modes-localization.md).
 
+## Corrected narrator subtitles: SRT + VTT
+
+For episodes with **real recorded/imported narration**, `pnpm captions:export <private-project-dir> <storyboard.json> <output-prefix>` exports UTF-8 SubRip and WebVTT subtitles from the **corrected, time-aligned segment transcript**. It rejects overlapping/out-of-range cues, long unreadable segments and attempts to overwrite existing subtitle files. SFX-only clips have no fabricated voice captions. Human review and correct language-specific timing are still required. See [caption export](docs/caption-export.md) and [#53](https://github.com/yesvus/sahne/issues/53).
+
 ## Quick start
 
 Requirements: Node.js 22+, pnpm 10+, and a machine able to run Chromium (Remotion installs/uses a supported browser).
