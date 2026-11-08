@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {spawnSync} from 'node:child_process';
-import {mkdtemp, mkdir, rm, writeFile} from 'node:fs/promises';
+import {mkdtemp, mkdir, rm, stat, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
@@ -18,11 +18,11 @@ const makeTone = (path: string, durationSeconds: number, frequency: number) => {
     '-af', 'volume=-14dB', '-c:a', 'pcm_s16le', path,
   ]);
 };
-const makeVisual = (path: string, durationSeconds: number) => {
+const makeVisual = (path: string, durationSeconds: number, fps = 30) => {
   run('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-nostdin', '-y',
     '-f', 'lavfi', '-i',
-    'color=c=#15262a:s=640x360:r=30:d=' + durationSeconds,
+    'color=c=#15262a:s=640x360:r=' + fps + ':d=' + durationSeconds,
     '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-an', path,
   ]);
 };
@@ -51,21 +51,21 @@ test('TR and EN: real FFmpeg audio mixing and MP4 assembly without touching visu
     }));
 
     for (const item of [
-      {language: 'tr', durationMs: 3000, cueAtMs: 500, pitch: 220},
-      {language: 'en', durationMs: 4000, cueAtMs: 1500, pitch: 330},
+      {language: 'tr', durationMs: 3000, fps: 30, cueAtMs: 500, pitch: 220},
+      {language: 'en', durationMs: 4000, fps: 60, cueAtMs: 1500, pitch: 330},
     ]) {
       const dir = join(root, item.language);
       await mkdir(join(dir, 'audio'), {recursive: true});
       makeTone(join(dir, 'audio', 'voice.wav'), item.durationMs / 1000, item.pitch);
       const visual = join(dir, 'visual.mp4');
-      makeVisual(visual, item.durationMs / 1000);
+      makeVisual(visual, item.durationMs / 1000, item.fps);
       const storyboard = {
         schemaVersion: 1,
         narration: {
           language: item.language, voicePath: 'audio/voice.wav',
           approvedScriptPath: 'script.md', transcriptPath: 'transcript.json',
         },
-        fps: 30, durationMs: item.durationMs,
+        fps: item.fps, durationMs: item.durationMs,
         beats: [{
           id: 'opening', startMs: 0, endMs: item.durationMs, cueSegmentIndex: 0,
           treatment: 'overlay', cueText: 'Original test tone, not real speech',
@@ -103,7 +103,7 @@ test('TR and EN: real FFmpeg audio mixing and MP4 assembly without touching visu
       assert.ok(Math.abs(Number(output.format.duration) * 1000 - item.durationMs) <= 100);
       assert.equal(
         output.streams.find((s) => s.codec_type === 'video')?.r_frame_rate,
-        '30/1',
+        item.fps + '/1',
       );
 
       // No silent replacement on repeated run.
@@ -164,6 +164,82 @@ test('assembly rejects pre-audible video and mismatched timing', async () => {
     ], {encoding: 'utf8'});
     assert.notEqual(wrongTime.status, 0);
     assert.match(wrongTime.stderr, /differs from storyboard/);
+  } finally {
+    await rm(root, {recursive: true, force: true});
+  }
+});
+
+test('assembly rejects irregular presentation timestamps despite a nominal 30 fps', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'sahne-mux-vfr-'));
+  try {
+    const video = join(root, 'visual.mp4');
+    run('ffmpeg', [
+      '-v', 'error', '-f', 'lavfi', '-i', 'color=s=160x90:r=30:d=2',
+      '-vf', "select='lt(t,1)+not(mod(n,2))'", '-fps_mode', 'vfr',
+      '-c:v', 'libx264', video,
+    ]);
+    const {streams, format} = inspect(video);
+    assert.equal(streams[0].r_frame_rate, '30/1');
+    const durationMs = Math.round(Number(format.duration) * 1000);
+    const audio = join(root, 'audio.wav');
+    makeTone(audio, durationMs / 1000, 220);
+    const storyboard = join(root, 'storyboard.json');
+    await writeFile(storyboard, JSON.stringify({
+      schemaVersion: 1,
+      narration: {voicePath: 'audio.wav', approvedScriptPath: 'script.md', transcriptPath: 'transcript.json'},
+      durationMs, fps: 30,
+      beats: [{
+        id: 'opening', startMs: 0, endMs: durationMs, treatment: 'overlay',
+        cueText: 'Synthetic test video', cueSegmentIndex: 0,
+        source: {kind: 'generate', brief: 'Render a simple color animation for QA'},
+      }],
+    }));
+    const output = join(root, 'final.mp4');
+    const result = spawnSync(process.execPath, [
+      '--import', 'tsx', 'scripts/assemble-video.ts', storyboard, video, audio, output,
+    ], {encoding: 'utf8'});
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Visual must have constant frame timing/);
+    await assert.rejects(stat(output), {code: 'ENOENT'});
+  } finally {
+    await rm(root, {recursive: true, force: true});
+  }
+});
+
+
+test('assembly rejects a single time-base tick offset on a 30fps frame grid', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'sahne-mux-pts-jitter-'));
+  try {
+    const video = join(root, 'visual.mp4');
+    run('ffmpeg', [
+      '-v', 'error', '-f', 'lavfi', '-i', 'color=s=160x90:r=30:d=1',
+      '-vf', "settb=expr=1/90000,setpts=N*3000+gte(N\\,1)",
+      '-fps_mode', 'passthrough', '-enc_time_base', '1:90000',
+      '-video_track_timescale', '90000', '-c:v', 'libx264', video,
+    ]);
+    const {streams, format} = inspect(video);
+    assert.equal(streams[0].r_frame_rate, '30/1');
+    const durationMs = Math.round(Number(format.duration) * 1000);
+    const audio = join(root, 'audio.wav');
+    makeTone(audio, durationMs / 1000, 220);
+    const storyboard = join(root, 'storyboard.json');
+    await writeFile(storyboard, JSON.stringify({
+      schemaVersion: 1,
+      narration: {voicePath: 'audio.wav', approvedScriptPath: 'script.md', transcriptPath: 'transcript.json'},
+      durationMs, fps: 30,
+      beats: [{
+        id: 'opening', startMs: 0, endMs: durationMs, treatment: 'overlay',
+        cueText: 'Synthetic video with a one-tick PTS shift', cueSegmentIndex: 0,
+        source: {kind: 'generate', brief: 'Render a simple color animation for QA'},
+      }],
+    }));
+    const output = join(root, 'final.mp4');
+    const result = spawnSync(process.execPath, [
+      '--import', 'tsx', 'scripts/assemble-video.ts', storyboard, video, audio, output,
+    ], {encoding: 'utf8'});
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Visual must have constant frame timing/);
+    await assert.rejects(stat(output), {code: 'ENOENT'});
   } finally {
     await rm(root, {recursive: true, force: true});
   }

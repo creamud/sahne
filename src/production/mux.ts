@@ -1,6 +1,7 @@
 import {spawn} from 'node:child_process';
 import {lstat, realpath, stat} from 'node:fs/promises';
 import {dirname, extname, resolve} from 'node:path';
+import {createInterface} from 'node:readline';
 import {mkdir} from 'node:fs/promises';
 import type {Storyboard} from './storyboard';
 
@@ -11,13 +12,18 @@ type Stream = {
   height?: number;
   r_frame_rate?: string;
   sample_rate?: string;
+  time_base?: string;
 };
 type ProbeResult = {
   streams?: Stream[];
   format?: {duration?: string};
 };
 
-const command = async (name: string, args: string[]): Promise<string> =>
+const command = async (
+  name: string,
+  args: string[],
+  onLine?: (line: string) => void,
+): Promise<string> =>
   new Promise((done, fail) => {
     const child = spawn(name, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -25,9 +31,13 @@ const command = async (name: string, args: string[]): Promise<string> =>
     });
     let stdout = '';
     let stderr = '';
-    child.stdout.setEncoding('utf8').on('data', (data: string) => {
-      stdout = (stdout + data).slice(-32_768);
-    });
+    if (onLine) {
+      createInterface({input: child.stdout}).on('line', onLine);
+    } else {
+      child.stdout.setEncoding('utf8').on('data', (data: string) => {
+        stdout = (stdout + data).slice(-32_768);
+      });
+    }
     child.stderr.setEncoding('utf8').on('data', (data: string) => {
       stderr = (stderr + data).slice(-32_768);
     });
@@ -41,7 +51,7 @@ const command = async (name: string, args: string[]): Promise<string> =>
 const inspect = async (file: string): Promise<{streams: Stream[]; durationMs: number}> => {
   const json = await command('ffprobe', [
     '-v', 'error', '-show_entries',
-    'format=duration:stream=codec_type,codec_name,width,height,r_frame_rate,sample_rate',
+    'format=duration:stream=codec_type,codec_name,width,height,r_frame_rate,sample_rate,time_base',
     '-of', 'json', file,
   ]);
   let info: ProbeResult;
@@ -57,12 +67,61 @@ const inspect = async (file: string): Promise<{streams: Stream[]; durationMs: nu
   return {streams: info.streams ?? [], durationMs};
 };
 
-const frameRate = (rational: string | undefined): number => {
+const rationalValue = (rational: string | undefined): number => {
   const [numerator, denominator = '1'] = (rational ?? '').split('/');
   const a = Number(numerator);
   const b = Number(denominator);
   if (!Number.isFinite(a) || !Number.isFinite(b) || b === 0) return NaN;
   return a / b;
+};
+
+const assertConstantFrameTiming = async (file: string, stream: Stream, fps: number) => {
+  const ticksPerFrame = 1 / (rationalValue(stream.time_base) * fps);
+  if (!Number.isFinite(ticksPerFrame) || ticksPerFrame < 1) {
+    throw new Error('Cannot verify visual frame timing from the video time base');
+  }
+
+  // H.264 packets may arrive out of presentation order. Check their positions
+  // on the frame grid and then verify that no positions are missing or repeated.
+  let origin: number | undefined;
+  let first = Infinity;
+  let last = -Infinity;
+  let invalid = false;
+  // A mathematically integral period (e.g. 3000 ticks at 30fps on a
+  // 90kHz clock) can be represented as 2999.9999999999995 by JS floats.
+  // Snap near-integer periods to their exact grid before checking PTS.
+  const roundedTicks = Math.round(ticksPerFrame);
+  const integralTicks = Math.abs(ticksPerFrame - roundedTicks) <=
+    4 * Number.EPSILON * Math.max(1, Math.abs(ticksPerFrame));
+  const gridTicksPerFrame = integralTicks ? roundedTicks : ticksPerFrame;
+  const tolerance = integralTicks ? 0 : 1.000001;
+  const positions = new Set<number>();
+  await command('ffprobe', [
+    '-v', 'error', '-select_streams', 'v:0',
+    '-show_entries', 'packet=pts:packet_side_data=', '-of', 'csv=p=0', file,
+  ], (line) => {
+    if (!line.trim() || invalid) return;
+    const [timestamp] = line.split(',', 1);
+    const pts = Number(timestamp);
+    if (!timestamp || !Number.isSafeInteger(pts)) {
+      invalid = true;
+      return;
+    }
+    origin ??= pts;
+    const offset = pts - origin;
+    const position = Math.round(offset / gridTicksPerFrame);
+    // Non-integral periods may need tick rounding; integral periods do not.
+    if (Math.abs(offset - position * gridTicksPerFrame) > tolerance || positions.has(position)) {
+      invalid = true;
+      return;
+    }
+    positions.add(position);
+    first = Math.min(first, position);
+    last = Math.max(last, position);
+  });
+  if (invalid || positions.size === 0 || positions.size !== last - first + 1) {
+    throw new Error('Visual must have constant frame timing at the storyboard FPS (' + fps + ')');
+  }
 };
 
 const assertDuration = (label: string, actualMs: number, expectedMs: number, toleranceMs: number) => {
@@ -130,7 +189,7 @@ export const muxRenderedVisualAndNarration = async ({
     throw new Error('Narration+SFX master must contain exactly one PCM WAV audio stream');
   }
 
-  const fps = frameRate(videoStreams[0].r_frame_rate);
+  const fps = rationalValue(videoStreams[0].r_frame_rate);
   if (!Number.isFinite(fps) || Math.abs(fps - storyboard.fps) > 0.01) {
     throw new Error(
       'Visual FPS ' + videoStreams[0].r_frame_rate +
@@ -141,6 +200,7 @@ export const muxRenderedVisualAndNarration = async ({
   const tolerance = Math.max(50, 2000 / storyboard.fps);
   assertDuration('Visual', visual.durationMs, storyboard.durationMs, tolerance);
   assertDuration('Narration mix', sound.durationMs, storyboard.durationMs, tolerance);
+  await assertConstantFrameTiming(video, videoStreams[0], storyboard.fps);
 
   await mkdir(dirname(output), {recursive: true});
   await command('ffmpeg', [

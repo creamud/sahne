@@ -42,7 +42,7 @@ Outputs are structured JSON on success or JSON error to stderr on failure. A suc
 
 - The supplied visual must already be a **silent H.264 MP4**. A pre-audible video is refused, to avoid overwriting its soundtrack without editorial inspection.
 - WAV narration+SFX master must have exactly one PCM audio stream.
-- Video FPS must match the storyboard, and **both** source durations must agree with the storyboard within at most roughly two frames. No silent stretching, unapproved audio cuts or implicit “-shortest” truncation.
+- Video must have constant presentation timing at the storyboard FPS, and **both** source durations must agree with the storyboard within at most roughly two frames. No silent stretching, unapproved audio cuts or implicit “-shortest” truncation.
 - Output must be a **new** `.mp4` file, never an existing video/audio/master. Inputs are passed to FFmpeg as argv elements, not through a shell.
 - Output is verified by `ffprobe` after encoding. A mux test only proves stream correctness — not editorial timing, clarity, LUFS, true peaks, natural speech or media rights.
 
