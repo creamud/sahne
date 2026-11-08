@@ -85,3 +85,5 @@ When the creator supplies a sentence for a standalone motion graphic, default to
 When the subject is a named product or brand, place its verified product mark next to its name in the upper-left subject header. Prefer an official brand asset and follow its usage guidance. If the mark cannot be verified or cleared, use the name alone. Do not substitute another product’s mark or commit third-party brand artwork to the repo.
 
 Match licensed effects to visible events. Use a short pencil-on-paper cue for a drawn underline and a soft, quiet bubble pop for a bubble reveal. Omit celebratory stingers. Keep effects sparse and avoid adding narration or music to the sentence-to-motion format unless requested.
+
+When a sentence names a real object, device, or place, prefer relevant real footage or photography when a suitable licensed asset is available. Use motion graphics alongside it to explain mechanisms or relationships that the footage does not show. Record the source and license in the project notes, follow attribution requirements, and keep third-party footage out of the repository.
