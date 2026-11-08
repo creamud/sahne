@@ -29,6 +29,20 @@ pnpm exec tsx scripts/stock-intake.ts review /private/catalog <id> approve "Revi
 pnpm exec tsx scripts/stock-intake.ts review /private/catalog <id> reject "Reviewer name"
 ```
 
-Choose one action per candidate. Approval rechecks the media checksum and writes a review receipt and credit. Rejected items remain unavailable to storyboard validation. Approved images and clips use ordinary catalog asset IDs. Review receipts and footage stay private. The command does not fetch providers or verify the legal terms on the reviewer’s behalf.
+Choose one action per candidate. Approval rechecks the media checksum and writes a review receipt and credit. Rejected items remain unavailable to storyboard validation. Approved images and clips use ordinary catalog asset IDs. The command does not fetch providers or verify the legal terms on the reviewer's behalf.
+
+The catalog is local and private. New directories are created with `0700` permissions and imported media, sidecars and receipts with `0600`. If the catalog directory already existed, verify its permissions yourself (for example `chmod 700 /private/catalog`); the tool deliberately does not change pre-existing directories.
+
+If the process stops **after** writing `review-receipt.json` but **before** replacing `candidate.asset.json`, do not repeat the human decision or delete the receipt. Resume that exact recorded decision with:
+
+```sh
+pnpm exec tsx scripts/stock-intake.ts recover /private/catalog <id>
+```
+
+Recovery checks the immutable receipt against source provenance, rechecks the media hash for approvals, and finishes updating the asset sidecar. It refuses missing, inconsistent or already-applied decisions. A stale `.review-lock` after an actual crash requires manual inspection before its removal.
+
+Imports are limited to 512 MiB per file, dimensions no greater than 8192 pixels in either direction, and MP4 visual streams no longer than 10 minutes. FFprobe and FFmpeg each have a 60-second timeout. These are **intake safety bounds**, not a guarantee that every clip within the bounds can be decoded quickly. A human must still check whether the specific source license permits the intended commercial video and attribution.
+
+This CLI validates catalog eligibility, **not** automatic placement of stock media in a final video. Final output still requires separate render and editorial QA.
 
 Run the offline synthetic fixture with `node --import tsx --test tests/stock-intake.test.ts`.
