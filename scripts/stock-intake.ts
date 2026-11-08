@@ -38,6 +38,14 @@ const receiptSchema = z.object({
   source: sourceSchema,
 }).strict();
 
+const reviewReceiptSchema = z.object({
+  reviewer: z.string().trim().min(1).max(120),
+  decision: z.enum(['approve', 'reject']),
+  reviewedAt: z.iso.datetime(),
+  licenseUrl: webUrl.optional(),
+  credit: z.string().min(1).max(1200),
+}).strict();
+
 const hashFile = async (file: string) => {
   const hash = createHash('sha256');
   for await (const chunk of createReadStream(file)) hash.update(chunk);
@@ -116,11 +124,14 @@ const importCandidate = async (catalog: string, input: string, sourceFile: strin
 
 const reviewCandidate = async (catalog: string, id: string, decision: string, reviewer: string) => {
   if (!/^stock-[a-f0-9]{64}$/.test(id)) throw new Error('Expected a stock candidate ID');
-  if (decision !== 'approve' && decision !== 'reject') throw new Error('Decision must be approve or reject');
-  const name = z.string().trim().min(1).max(120).parse(reviewer);
+  const recovering = decision === 'recover';
+  if (!recovering && decision !== 'approve' && decision !== 'reject') {
+    throw new Error('Decision must be approve or reject');
+  }
+  const name = recovering ? undefined : z.string().trim().min(1).max(120).parse(reviewer);
   const directory = join(catalog, id);
   if (await realpath(directory) !== directory) throw new Error('Candidate directory cannot be a symlink');
-  // mkdir is an exclusive review lock, so simultaneous decisions cannot overwrite each other.
+  // Exclusive lock serializes review and recovery; leave a crash-stale lock for manual inspection.
   const lock = join(directory, '.review-lock');
   await mkdir(lock, {mode: 0o700});
   try {
@@ -131,34 +142,52 @@ const reviewCandidate = async (catalog: string, id: string, decision: string, re
         asset.location.kind !== 'local' || !new RegExp('^' + id + '/media\\.(png|jpe?g|mp4)$').test(asset.location.relativePath)) {
       throw new Error('Candidate metadata and receipt do not match');
     }
-    if (await exists(join(directory, 'review-receipt.json'))) throw new Error('Candidate already has a durable review decision');
+    const decisionFile = join(directory, 'review-receipt.json');
+    const hasDecision = await exists(decisionFile);
+    if (recovering && !hasDecision) throw new Error('No durable review decision to recover');
+    if (!recovering && hasDecision) throw new Error('Candidate already has a durable review decision');
     if (asset.reviewStatus !== 'draft') throw new Error('Candidate has already been reviewed');
-    if (decision === 'approve') {
-      if (!receipt.source.licenseUrl || /^(unknown|unclear|unverified|pending|n\/a)$/i.test(receipt.source.license)) {
+
+    const source = receipt.source;
+    const credit = source.attribution ??
+      source.title + ' — ' + source.creator + ' (' + source.provider + '), ' +
+      source.license + ' · ' + source.sourceUrl;
+    const stored = recovering
+      ? reviewReceiptSchema.parse(await json(await regularFile(decisionFile)))
+      : undefined;
+    if (stored && (stored.licenseUrl !== source.licenseUrl || stored.credit !== credit)) {
+      throw new Error('Durable review receipt does not match source provenance');
+    }
+    const finalDecision = stored?.decision ?? decision;
+    if (finalDecision === 'approve') {
+      if (!source.licenseUrl || /^(unknown|unclear|unverified|pending|n\/a)$/i.test(source.license)) {
         throw new Error('Approval requires a documented license and license URL');
       }
       const media = await regularFile(join(catalog, asset.location.relativePath));
       if (await hashFile(media) !== receipt.sha256) throw new Error('Candidate media checksum changed');
     }
-    const source = receipt.source;
-    const credit = source.attribution ??
-      source.title + ' — ' + source.creator + ' (' + source.provider + '), ' +
-      source.license + ' · ' + source.sourceUrl;
     const updated = assetSchema.parse({
-      ...asset, reviewStatus: decision === 'approve' ? 'approved' : 'retired',
+      ...asset, reviewStatus: finalDecision === 'approve' ? 'approved' : 'retired',
       rights: {
-        ...asset.rights, clearance: decision === 'approve' ? 'cleared' : 'review-needed',
+        ...asset.rights, clearance: finalDecision === 'approve' ? 'cleared' : 'review-needed',
         license: source.license, attribution: source.attribution, sourceUrl: source.sourceUrl,
       },
     });
-    await writeJson(join(lock, 'decision.json'), {
-      reviewer: name, decision, reviewedAt: new Date().toISOString(), licenseUrl: source.licenseUrl, credit,
-    });
     await writeJson(join(lock, 'candidate.asset.json'), updated);
-    // Save the review receipt before making the candidate eligible for approved-only search.
-    await rename(join(lock, 'decision.json'), join(directory, 'review-receipt.json'));
+    if (!recovering) {
+      const decisionReceipt = reviewReceiptSchema.parse({
+        reviewer: name, decision: finalDecision, reviewedAt: new Date().toISOString(),
+        licenseUrl: source.licenseUrl, credit,
+      });
+      await writeJson(join(lock, 'decision.json'), decisionReceipt);
+      // Receipt is durable first; the recover command finishes an interrupted sidecar update.
+      await rename(join(lock, 'decision.json'), decisionFile);
+    }
     await rename(join(lock, 'candidate.asset.json'), sidecar);
-    console.log(JSON.stringify({id, status: updated.reviewStatus, credit: decision === 'approve' ? credit : undefined}, null, 2));
+    console.log(JSON.stringify({
+      id, status: updated.reviewStatus, recovered: recovering,
+      credit: finalDecision === 'approve' ? credit : undefined,
+    }, null, 2));
   } finally {
     await rm(lock, {recursive: true, force: true});
   }
@@ -170,11 +199,15 @@ const main = async () => {
     await mkdir(directory, {recursive: true, mode: 0o700});
     return importCandidate(await realpath(directory), args[0], args[1]);
   }
+  if (directory && action === 'recover' && args.length === 1) {
+    return reviewCandidate(await realpath(directory), args[0], 'recover', '');
+  }
   if (directory && action === 'review' && args.length === 3) {
     return reviewCandidate(await realpath(directory), args[0], args[1], args[2]);
   }
   throw new Error('Usage: stock-intake.ts import <catalog> <media> <source.json> | ' +
-    'stock-intake.ts review <catalog> <id> <approve|reject> <reviewer>');
+    'stock-intake.ts review <catalog> <id> <approve|reject> <reviewer> | ' +
+    'stock-intake.ts recover <catalog> <id>');
 };
 
 main().catch((error: unknown) => {
