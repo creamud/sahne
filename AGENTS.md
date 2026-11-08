@@ -76,3 +76,8 @@ Do not bake scene durations into global time calculations or use wall-clock time
 ## Visual primitives
 
 Use `src/design/tokens.ts` for typography, colors and 16:9 safe-area defaults; use pure functions in `src/design/motion.ts` for timing and easing. Assemble templates from `SceneCanvas`, `SceneHeader`, and `MetricBar` rather than duplicating CSS or interpolation logic. The duration passed to a scene within a `Series.Sequence` must be the **local** duration, not the total video duration. Inspect contrast and clipping at 1080p. See `docs/style-guide.md`.
+
+
+## Repeatable clip authoring
+
+Follow the [agent authoring workflow](docs/agent-authoring.md) when creating a new clip. Choose an existing template, validate editable inputs, preview key frames, render and inspect the result, then rerender only the affected shot after feedback. Use the five prompts and shared rubric in that guide when evaluating a template or authoring change. Record unsupported cases and failed validations explicitly.
