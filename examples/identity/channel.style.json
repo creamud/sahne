@@ -10,8 +10,8 @@
       "accent": "#efbd73"
     },
     "typography": {
-      "displayFont": "Georgia",
-      "bodyFont": "Arial",
+      "displayFont": "Montserrat",
+      "bodyFont": "Montserrat",
       "minimumReadablePxAt1080p": 44
     },
     "motion": "restrained",

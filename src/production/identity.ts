@@ -119,14 +119,29 @@ export const videoProjectSchema = z.object({
     channelId: slug,
     revision: z.number().int().positive(),
   }).strict(),
-  scriptPath: relativePath,
-  voicePath: relativePath,
+  // Voice-free B-roll projects need no script/transcript or recorded narrator.
+  mode: z.enum(['sfx-only', 'narrated']).optional(),
+  language: z.enum(['tr', 'en']).optional(),
+  scriptPath: relativePath.optional(),
+  voicePath: relativePath.optional(),
   storyboardPath: relativePath,
   templatePins: z.array(z.object({
     id: slug,
     version: z.string().regex(/^\d+\.\d+\.\d+$/),
   }).strict()).default([]),
 }).strict().superRefine((project, context) => {
+  if (project.mode === 'sfx-only' && project.voicePath !== undefined) {
+    context.addIssue({
+      code: 'custom', path: ['voicePath'],
+      message: 'SFX-only video should not declare a voice track',
+    });
+  }
+  if (project.mode !== 'sfx-only' && !project.voicePath) {
+    context.addIssue({
+      code: 'custom', path: ['voicePath'],
+      message: 'Narrated video requires a local voice file; set mode=sfx-only for videos without speech',
+    });
+  }
   const pins = project.templatePins.map((pin) => pin.id);
   if (new Set(pins).size !== pins.length) {
     context.addIssue({

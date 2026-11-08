@@ -1,6 +1,6 @@
 /** Shared 16:9 design tokens. Colors are intentionally independent of scene content. */
 export const tokens = {
-  fontFamily: 'Arial, Helvetica, sans-serif',
+  fontFamily: 'Montserrat, Arial, Helvetica, sans-serif',
   colors: {
     background: '#0b1220',
     foreground: '#f8fafc',

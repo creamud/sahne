@@ -1,15 +1,15 @@
 # Agent instructions — Sahne
 
 ## Mission
-**Product mission:** support a human creator making narration-first YouTube videos with an agent-operated script → voice recording → timed transcript → storyboard → asset reuse/creation → render → review workflow. The creator supplies and approves the script and their own voice. See [docs/vision.md](docs/vision.md), [docs/production-workflow.md](docs/production-workflow.md), [docs/storage-and-assets.md](docs/storage-and-assets.md), and [#20](https://github.com/yesvus/sahne/issues/20).
+**Product mission:** produce Turkish/English code-driven videos with reusable templates, branded typography and sound effects. **SFX-only videos have no spoken narration**. For optional narrated editions, accept either the creator's own recording or a licensed externally supplied audio file; only narrated videos require a corrected speech transcript. See [docs/vision.md](docs/vision.md), [docs/production-workflow.md](docs/production-workflow.md), [docs/storage-and-assets.md](docs/storage-and-assets.md), and [#20](https://github.com/yesvus/sahne/issues/20).
 
 **Implementation today:** a deterministic Remotion scene renderer. Treat that as a component, not the full product. Prefer invoking/adapting proven tools such as Avenox Skills and existing renderers over duplicating them. Do not introduce diffusion video generation, a custom editor, cloud infrastructure, or new orchestration services without an explicit product decision.
 
 ## Product workflow constraints
 
-- Use approved scripts for editorial intent, but align visuals to the **actual recorded audio** and corrected transcript timestamps.
+- **SFX-only:** never invent a voice file, transcript or mandatory spoken script. Align visual events and approved SFX against the motion timeline. **Narrated:** align visuals to the actual provided/recorded audio and corrected transcript timestamps.
 - Search/inspect approved cataloged assets before generating new B-roll or motion graphics. Track provenance, rights, stable asset IDs and editable source.
-- Human gates: script approval and final video QA/publishing; do not auto-publish.
+- Human gates: approve a narration script **only if speech is actually used**, and always review final video QA/publishing; do not auto-publish.
 - `yesvus/sahne` is public: **never commit unpublished scripts, recordings, Drive file IDs, private storyboards, credentials or binary video archives**.
 - Tool/provider agnostic and local-first. Do not make Remotion vs HyperFrames migration decisions without a sample-based evaluation.
 - Treat `docs/vision.md` as the product direction and `docs/architecture.md` as the current renderer implementation. Re-triage legacy issues under [#1](https://github.com/yesvus/sahne/issues/1) against [#20](https://github.com/yesvus/sahne/issues/20).
@@ -26,7 +26,7 @@ Never schedule visual cues using unverified pre-recording script timestamps. Cor
 
 ## Channel identity and template consistency
 
-Before adding a new graphic or template, read `docs/channel-style-and-templates.md`. **Channel is the stable creative identity; video projects pin a channel style revision and template versions; assets are reviewed outputs/sources.** Do not let a downloaded template override a channel's palette/typefaces or change recurring character identities. Keep character reference sheets and unpublished channel/video metadata private.
+Before adding a new graphic or template, read `docs/channel-style-and-templates.md`. **Channel is the stable creative identity; video projects pin a channel style revision and template versions; assets are reviewed outputs/sources.** Montserrat is the current default, **not a fixed dependency**; use the channel's overridable font tokens and verify Turkish glyphs. Do not let a downloaded template override a channel's palette/typefaces or change recurring character identities. Keep character reference sheets and unpublished channel/video metadata private.
 
 For visual direction, prefer one dominant concept per shot, large typography, ample empty space and meaningful animation. Avoid faux-website dashboard cards, permanent UI chrome, dense captions, small technical labels and decorative progress bars in explanatory B-roll. The macOS window template is appropriate **only when actual software/UI is being explained**.
 
@@ -36,9 +36,9 @@ Use upstream HyperFrames composition variables instead of a custom parameterized
 
 **Before implementing any feature**, consult `docs/research-and-reuse.md` and assess existing maintained solutions (Avenox Skills, HyperFrames, FFmpeg, video-alchemy, other relevant upstream projects) plus their **licenses and actual capabilities**. Prefer a small wrapper/contribution over rebuilding video/audio infrastructure. A weekly research radar exists to catch changes; do not automatically file issues for headlines.
 
-**Bilingual production:** Turkish (`tr`) and English (`en`) editions share channel identity/templates but use separately approved scripts, original recordings, transcripts, storyboard timings, sound cues and exports. Never copy a language's cue timecodes to its translation.
+**Bilingual production:** Turkish (`tr`) and English (`en`) share the same reusable graphics and channel identity. **On-screen copy can change without any speech.** Voice/audio/transcripts only exist for narrated editions (creator-recorded or imported); timings of narrated editions remain independent.
 
-**Sound design:** `docs/sound-design.md` describes rights-checked optional SFX cues and `pnpm audio:mix`. Use the existing asset catalog (`category: audio`), **only approved/cleared** sounds, and native FFmpeg filtergraphs. Keep spoken narration authoritative; effects quiet, sparse and tied to meaningful animation events. Real voice/audio binaries and Drive IDs must not be committed to public GitHub. Automated sine-wave audio tests do not prove human speech clarity or licensing.
+**Sound design:** `docs/sound-design.md` describes rights-checked SFX cues and `pnpm audio:mix`. Use the existing asset catalog (`category: audio`), **only approved/cleared** sounds, and native FFmpeg filtergraphs. For SFX-only clips no voice or transcript is necessary; for narrated clips the supplied voice is authoritative. Effects remain sparse, subtle and tied to animation events. Real voice/audio binaries and Drive IDs must not be committed to public GitHub. Automated sine-wave audio tests do not prove human speech clarity or licensing.
 
 ## Final audio+video handoff (no new editor)
 

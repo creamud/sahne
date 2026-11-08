@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "http-request-sfx-tr",
+  "title": "HTTP isteği: Türkçe animasyon, yalnız efekt",
+  "mode": "sfx-only",
+  "language": "tr",
+  "style": {
+    "channelId": "systems-explained",
+    "revision": 1
+  },
+  "storyboardPath": "storyboard.sfx-only-tr.sample.json",
+  "templatePins": [
+    {
+      "id": "kinetic-text-highlight",
+      "version": "1.0.0"
+    }
+  ]
+}
