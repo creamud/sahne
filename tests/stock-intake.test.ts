@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {execFileSync, spawnSync} from 'node:child_process';
-import {mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';
+import {chmod, mkdtemp, readFile, rm, stat, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {test} from 'node:test';
@@ -41,6 +41,9 @@ test('imports stock offline and enforces draft, approved, and rejected catalog s
     const still = media('still.png', 'red');
     const video = media('b-roll.mp4', 'blue');
     const photo = intake(still);
+    assert.equal((await stat(join(catalog, photo.id))).mode & 0o777, 0o700);
+    assert.equal((await stat(photo.preview)).mode & 0o777, 0o600);
+    assert.equal((await stat(join(catalog, photo.id, 'source-receipt.json'))).mode & 0o777, 0o600);
     const clip = intake(video);
     assert.equal(photo.status, 'draft');
     assert.equal(searchAssets(await loadAssetCatalog(catalog), 'stock').length, 0);
@@ -67,6 +70,10 @@ test('imports stock offline and enforces draft, approved, and rejected catalog s
     const changed = intake(media('changed.png', 'white'));
     await writeFile(changed.preview, 'corrupt');
     assert.match(invoke('review', changed.id, 'approve', 'Human reviewer').stderr, /checksum changed/);
+    // Simulate interruption after the durable receipt was published but before the sidecar changed.
+    const interrupted = intake(media('interrupted.png', 'yellow'));
+    await writeFile(join(catalog, interrupted.id, 'review-receipt.json'), JSON.stringify({decision: 'reject'}));
+    assert.match(invoke('review', interrupted.id, 'approve', 'Human reviewer').stderr, /durable review decision/);
     const broken = join(dir, 'broken.mp4');
     await writeFile(broken, 'not a video');
     assert.equal(invoke('import', broken, metadata).status, 1);
