@@ -76,3 +76,12 @@ Do not bake scene durations into global time calculations or use wall-clock time
 ## Visual primitives
 
 Use `src/design/tokens.ts` for typography, colors and 16:9 safe-area defaults; use pure functions in `src/design/motion.ts` for timing and easing. Assemble templates from `SceneCanvas`, `SceneHeader`, and `MetricBar` rather than duplicating CSS or interpolation logic. The duration passed to a scene within a `Series.Sequence` must be the **local** duration, not the total video duration. Inspect contrast and clipping at 1080p. See `docs/style-guide.md`.
+
+
+## Sentence-to-motion clips
+
+When the creator supplies a sentence for a standalone motion graphic, default to a character-free, SFX-only clip. Use a few unboxed keywords in the channel’s typeface and omit corner captions, generic badges, and decorative labels. Use the graphic itself to communicate the change. If the input gives only a qualitative scale, avoid inventing exact figures, percentages, or axis values.
+
+When the subject is a named product or brand, place its verified product mark next to its name in the upper-left subject header. Prefer an official brand asset and follow its usage guidance. If the mark cannot be verified or cleared, use the name alone. Do not substitute another product’s mark or commit third-party brand artwork to the repo.
+
+Match licensed effects to visible events. Use a short pencil-on-paper cue for a drawn underline and a soft, quiet bubble pop for a bubble reveal. Omit celebratory stingers. Keep effects sparse and avoid adding narration or music to the sentence-to-motion format unless requested.
