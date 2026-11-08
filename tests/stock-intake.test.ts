@@ -58,10 +58,9 @@ test('imports stock offline and enforces draft, approved, and rejected catalog s
       }],
     };
     assert.throws(() => validateStoryboardAssets(storyboard, []), /missing asset/);
-    assert.throws(() => validateStoryboardAssets(storyboard, [
-      // Draft candidates must never become valid storyboard inputs.
-      ...(await loadAssetCatalog(catalog)),
-    ]), /unapproved\/uncleared/);
+    // Draft candidates must never become valid storyboard inputs.
+    const draftCatalog = await loadAssetCatalog(catalog);
+    assert.throws(() => validateStoryboardAssets(storyboard, draftCatalog), /unapproved\/uncleared/);
     assert.equal(photo.status, 'draft');
     assert.equal(searchAssets(await loadAssetCatalog(catalog), 'stock').length, 0);
     assert.match(invoke('import', still, metadata).stderr, /already exists/);
