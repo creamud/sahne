@@ -27,18 +27,40 @@
       background:radial-gradient(ellipse at 50% 50%,#1a272a,var(--ground) 75%);
       font-family:var(--display),Montserrat,Arial,sans-serif;
     }
-    #headline{position:absolute;left:145px;right:145px;top:286px;margin:0;
-      font-size:127px;line-height:1.10;letter-spacing:-.055em;white-space:nowrap;
-      font-weight:400;opacity:0}
-    #highlight-wrap{position:absolute;left:139px;right:139px;top:560px;
-      height:190px;display:flex;align-items:center;opacity:0}
-    #highlighter{
-      position:absolute;top:0;bottom:0;left:0;width:1450px;
-      max-width:100%;background:var(--accent);transform-origin:left center;
+    #root {
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:32px;
+      padding:64px 145px;
     }
-    #highlight-text{position:relative;z-index:1;color:var(--ground);padding:0 28px;
-      font-size:127px;letter-spacing:-.055em;font-weight:400;line-height:1.12;
-      white-space:nowrap}
+    #headline,#highlight-text {
+      margin:0;
+      font-size:127px;
+      font-weight:400;
+      letter-spacing:-.055em;
+      line-height:1.1;
+      overflow-wrap:anywhere;
+    }
+    #highlight-wrap {
+      align-self:flex-start;
+      min-width:1000px;
+      max-width:100%;
+      opacity:0;
+    }
+    #highlight-reveal {
+      position:relative;
+      padding:22px 28px;
+    }
+    #highlighter {
+      position:absolute;
+      inset:0;
+      background:var(--accent);
+    }
+    #highlight-text {
+      position:relative;
+      color:var(--ground);
+    }
   </style>
 </head>
 <body>
@@ -47,8 +69,10 @@
     <h1 id="headline" class="clip" data-start="0" data-duration="6"
       data-track-index="0" data-var-text="headline">One small click.</h1>
     <div id="highlight-wrap" class="clip" data-start="0" data-duration="6" data-track-index="1">
-      <div id="highlighter"></div>
-      <div id="highlight-text" data-var-text="highlight">One big journey.</div>
+      <div id="highlight-reveal">
+        <div id="highlighter"></div>
+        <div id="highlight-text" data-var-text="highlight">One big journey.</div>
+      </div>
     </div>
   </main>
   <script>
@@ -56,8 +80,7 @@
     const tl=gsap.timeline({paused:true});
     tl.fromTo("#headline",{opacity:1,y:24},{opacity:1,y:0,duration:.78,ease:"power3.out"},0);
     tl.fromTo("#highlight-wrap",{opacity:0,y:55},{opacity:1,y:0,duration:.52,ease:"power3.out"},1.25);
-    tl.fromTo("#highlighter",{scaleX:0},{scaleX:1,duration:1.02,ease:"power3.inOut"},1.44);
-    tl.fromTo("#highlight-text",{opacity:0},{opacity:1,duration:.48},1.87);
+    tl.fromTo("#highlight-reveal",{clipPath:"inset(0 100% 0 0)"},{clipPath:"inset(0 0% 0 0)",duration:1.02,ease:"power3.inOut"},1.44);
     // Hold readable text at full contrast until the enclosing clip ends.
     window.__timelines.main=tl;
     tl.seek(0);
