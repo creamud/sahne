@@ -114,7 +114,7 @@ test('FFmpeg mixes timed, rights-approved SFX with separate Turkish and English 
   }
 });
 
-test('mix refuses symlinked media outside the approved catalog', async () => {
+test('mix refuses symlinks and playlists that reference media outside the approved catalog', async () => {
   const root = await mkdtemp(join(tmpdir(), 'sahne-audio-escape-'));
   try {
     const projectDir = join(root, 'project');
@@ -125,13 +125,15 @@ test('mix refuses symlinked media outside the approved catalog', async () => {
     makeWav(join(projectDir, 'audio', 'voice.wav'), 220, 2);
     makeWav(outside, 880, 0.3);
     await symlink(outside, join(assetsDir, 'fx', 'linked.wav'));
-    await writeFile(join(assetsDir, 'bad.asset.json'), JSON.stringify({
+    const asset = {
       schemaVersion: 1, id: 'linked-click', title: 'Linked test sound',
       description: 'Should never be allowed to escape local asset root',
       category: 'audio', tags: ['click'], reviewStatus: 'approved',
       rights: {origin: 'original', clearance: 'cleared', license: 'test-generated'},
       location: {kind: 'local', relativePath: 'fx/linked.wav'},
-    }));
+    };
+    const sidecar = join(assetsDir, 'bad.asset.json');
+    await writeFile(sidecar, JSON.stringify(asset));
     const storyboard = {
       schemaVersion: 1,
       narration: {language: 'tr', voicePath: 'audio/voice.wav',
@@ -152,6 +154,22 @@ test('mix refuses symlinked media outside the approved catalog', async () => {
     ], {encoding: 'utf8'});
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /Media path escapes its catalog\/project root/);
+
+    execute('ffmpeg', [
+      '-v', 'error', '-i', outside, '-c:a', 'aac', '-f', 'mpegts', join(root, 'outside.ts'),
+    ]);
+    await writeFile(join(assetsDir, 'fx', 'playlist.m3u8'), [
+      '#EXTM3U', '#EXT-X-VERSION:3', '#EXT-X-TARGETDURATION:1',
+      '#EXTINF:0.3,', '../../outside.ts', '#EXT-X-ENDLIST', '',
+    ].join('\n'));
+    await writeFile(sidecar, JSON.stringify({
+      ...asset, location: {kind: 'local', relativePath: 'fx/playlist.m3u8'},
+    }));
+    const playlistResult = spawnSync(process.execPath, [
+      '--import', 'tsx', 'scripts/mix-audio.ts', projectDir, storyPath, assetsDir, join(projectDir, 'out.wav'),
+    ], {encoding: 'utf8'});
+    assert.equal(playlistResult.status, 1);
+    assert.match(playlistResult.stderr, /not on whitelist/);
   } finally {
     await rm(root, {recursive: true, force: true});
   }
