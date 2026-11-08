@@ -7,6 +7,9 @@
 
 ## Product workflow constraints
 
+**Primary release objective:** complete human-reviewed, YouTube-watch-ready 3-minute episodes before prioritizing 10-minute throughput. Read the [production readiness roadmap](docs/product-readiness-roadmap.md) and [creative QA playbook](docs/creative-qa-playbook.md) before accepting long-form video or authoring features. A render test passing is not a published-quality video. When a non-coding creative reviewer reports a problem, respond with **the exact video timestamp, changed shot, new private preview and before/after visual result** rather than a code-oriented explanation. Respect the human final approval gate and do not leak private previews.
+
+
 - **SFX-only:** never invent a voice file, transcript or mandatory spoken script. Align visual events and approved SFX against the motion timeline. **Narrated:** align visuals to the actual provided/recorded audio and corrected transcript timestamps.
 - Search/inspect approved cataloged assets before generating new B-roll or motion graphics. Track provenance, rights, stable asset IDs and editable source.
 - Human gates: approve a narration script **only if speech is actually used**, and always review final video QA/publishing; do not auto-publish.

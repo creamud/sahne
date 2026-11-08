@@ -6,6 +6,9 @@
 
 ## Product docs
 
+- [3-minute production readiness audit and 10-minute roadmap](docs/product-readiness-roadmap.md)
+- [Creative QA playbook for a non-coding reviewer and AI agents](docs/creative-qa-playbook.md)
+
 - [Vision and MVP](docs/vision.md)
 - [Narration-first workflow](docs/production-workflow.md)
 - [GitHub vs Drive / asset catalog](docs/storage-and-assets.md)
