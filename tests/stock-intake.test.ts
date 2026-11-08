@@ -7,6 +7,7 @@ import {test} from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {searchAssets} from '../src/assets/catalog';
 import {loadAssetCatalog} from '../src/assets/store';
+import {validateStoryboardAssets} from '../src/production/storyboard';
 
 const cli = fileURLToPath(new URL('../scripts/stock-intake.ts', import.meta.url));
 const toolsAvailable = ['ffmpeg', 'ffprobe'].every((tool) => spawnSync(tool, ['-version']).status === 0);
@@ -45,6 +46,22 @@ test('imports stock offline and enforces draft, approved, and rejected catalog s
     assert.equal((await stat(photo.preview)).mode & 0o777, 0o600);
     assert.equal((await stat(join(catalog, photo.id, 'source-receipt.json'))).mode & 0o777, 0o600);
     const clip = intake(video);
+    const storyboard = {
+      schemaVersion: 1, fps: 30, durationMs: 1000,
+      narration: {
+        voicePath: 'audio/voice.wav', approvedScriptPath: 'script.md', transcriptPath: 'transcript.json',
+      },
+      beats: [{
+        id: 'stock-shot', startMs: 0, endMs: 1000, treatment: 'cutaway',
+        cueText: 'Show reviewed stock footage', cueSegmentIndex: 0,
+        source: {kind: 'asset', assetId: photo.id},
+      }],
+    };
+    assert.throws(() => validateStoryboardAssets(storyboard, []), /missing asset/);
+    assert.throws(() => validateStoryboardAssets(storyboard, [
+      // Draft candidates must never become valid storyboard inputs.
+      ...(await loadAssetCatalog(catalog)),
+    ]), /unapproved\/uncleared/);
     assert.equal(photo.status, 'draft');
     assert.equal(searchAssets(await loadAssetCatalog(catalog), 'stock').length, 0);
     assert.match(invoke('import', still, metadata).stderr, /already exists/);
@@ -59,6 +76,7 @@ test('imports stock offline and enforces draft, approved, and rejected catalog s
     }
     assert.deepEqual(searchAssets(await loadAssetCatalog(catalog), 'stock')
       .map(({category}) => category).sort(), ['b-roll', 'still-image']);
+    assert.equal(validateStoryboardAssets(storyboard, await loadAssetCatalog(catalog)).beats[0].source.kind, 'asset');
 
     await writeFile(metadata, JSON.stringify({...source, license: 'unknown'}));
     const unclear = intake(media('unclear.png', 'green'));
