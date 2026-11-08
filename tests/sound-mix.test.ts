@@ -156,3 +156,37 @@ test('mix refuses symlinked media outside the approved catalog', async () => {
     await rm(root, {recursive: true, force: true});
   }
 });
+
+test('mix rejects narration with an audible tail inside the old duration tolerance', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'sahne-audio-tail-'));
+  try {
+    const catalog = join(root, 'catalog');
+    await mkdir(catalog);
+    execute('ffmpeg', [
+      '-v', 'error', '-f', 'lavfi',
+      '-i', String.raw`aevalsrc=if(gte(t\,1)\,0.5*sin(2*PI*440*t)\,0):s=48000:d=1.09`,
+      join(root, 'voice.wav'),
+    ]);
+    const storyPath = join(root, 'storyboard.json');
+    await writeFile(storyPath, JSON.stringify({
+      schemaVersion: 1,
+      narration: {voicePath: 'voice.wav', approvedScriptPath: 'script.md', transcriptPath: 'transcript.json'},
+      fps: 30, durationMs: 1000,
+      beats: [{
+        id: 'opening', startMs: 0, endMs: 1000, treatment: 'overlay',
+        cueText: 'Synthetic narration tail', cueSegmentIndex: 0,
+        source: {kind: 'generate', brief: 'Show a synthetic test visual.'},
+      }],
+    }));
+
+    const output = join(root, 'mix.wav');
+    const result = spawnSync(process.execPath, [
+      '--import', 'tsx', 'scripts/mix-audio.ts', root, storyPath, catalog, output,
+    ], {encoding: 'utf8'});
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Recorded narration duration \(1090ms\) differs/);
+    await assert.rejects(stat(output), {code: 'ENOENT'});
+  } finally {
+    await rm(root, {recursive: true, force: true});
+  }
+});

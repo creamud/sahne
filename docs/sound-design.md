@@ -67,7 +67,7 @@ pnpm audio:mix \
   "/local/private/video-project/outputs/narration-sfx.wav"
 ```
 
-The tool rejects missing media, catalog path traversal/symlink escapes, non-audio or unapproved effects, unsupported remotely stored assets that have not been downloaded locally, and mismatched narration-vs-storyboard durations. It never replaces an existing output master. It emits a machine-readable JSON result. **It is not an ASR, time-stretching or loudness-mastering service.**
+The tool rejects missing media, catalog path traversal/symlink escapes, non-audio or unapproved effects, unsupported remotely stored assets that have not been downloaded locally, and mismatched narration-vs-storyboard durations. A longer narration is rejected rather than trimmed. Narration up to 100 ms shorter than the storyboard is padded with silence. It never replaces an existing output master. It emits a machine-readable JSON result. **It is not an ASR, time-stretching or loudness-mastering service.**
 
 Current FFmpeg mix: 48kHz stereo 24-bit WAV, explicit effect gains, non-normalizing `amix`, peak limiter. This protects against obvious summation peaks but does **not** guarantee consistent perceived loudness: listen and inspect loudness/true peak before publication. Do not mechanically target an LUFS number without understanding delivery normalization and spoken-word intelligibility.
 
