@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "language": "en",
+  "fps": 30,
+  "durationMs": 14500,
+  "beats": [
+    {
+      "id": "intro",
+      "startMs": 0,
+      "endMs": 3500,
+      "treatment": "overlay",
+      "cueText": "One click. One journey.",
+      "source": {
+        "kind": "generate",
+        "brief": "Oversized Montserrat headline and one subtle highlight."
+      }
+    },
+    {
+      "id": "request-journey",
+      "startMs": 3500,
+      "endMs": 10800,
+      "treatment": "cutaway",
+      "cueText": "Client → Network → Server",
+      "source": {
+        "kind": "generate",
+        "brief": "Minimal three-node graphic with one moving packet."
+      }
+    },
+    {
+      "id": "response",
+      "startMs": 10800,
+      "endMs": 14500,
+      "treatment": "overlay",
+      "cueText": "The answer returns. 200 OK",
+      "source": {
+        "kind": "generate",
+        "brief": "Large restrained success-response typography."
+      }
+    }
+  ],
+  "soundCues": [
+    {
+      "id": "title-accent",
+      "assetId": "synthetic-click-v1",
+      "atMs": 1500,
+      "durationMs": 200,
+      "gainDb": -6,
+      "visualBeatId": "intro"
+    },
+    {
+      "id": "request-sent",
+      "assetId": "synthetic-click-v1",
+      "atMs": 5000,
+      "durationMs": 200,
+      "gainDb": -8,
+      "visualBeatId": "request-journey"
+    },
+    {
+      "id": "gateway-pass",
+      "assetId": "synthetic-click-v1",
+      "atMs": 7520,
+      "durationMs": 200,
+      "gainDb": -10,
+      "visualBeatId": "request-journey"
+    },
+    {
+      "id": "response-arrival",
+      "assetId": "synthetic-click-v1",
+      "atMs": 11540,
+      "durationMs": 200,
+      "gainDb": -7,
+      "visualBeatId": "response"
+    }
+  ]
+}

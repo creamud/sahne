@@ -1,0 +1,20 @@
+{
+  "channelBackground": "#10191c",
+  "channelForeground": "#f0eee6",
+  "channelAccent": "#efbd73",
+  "channelDisplayFont": "Montserrat",
+  "introLine": "Tek tık.",
+  "introPrefix": "Bir ",
+  "introHighlight": "yolculuk.",
+  "journeyLead": "Bir ",
+  "journeyFocus": "istek.",
+  "journeyTail": " Üç durak.",
+  "nodeClient": "İstemci",
+  "nodeGateway": "Ağ",
+  "nodeServer": "Sunucu",
+  "actionSend": "Gönder.",
+  "actionRoute": "İlet.",
+  "actionRespond": "Yanıtla.",
+  "outroLead": "Yanıt geri döner.",
+  "outroCaption": "Başarılı bir yanıt örneği."
+}

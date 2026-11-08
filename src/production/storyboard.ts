@@ -42,23 +42,39 @@ const visualBeatSchema = z.object({
   endMs: z.number().int().positive(),
   treatment: z.enum(['overlay', 'cutaway']),
   cueText: z.string().trim().min(1).max(400),
-  cueSegmentIndex: z.number().int().nonnegative(),
+  cueSegmentIndex: z.number().int().nonnegative().optional(),
   source: sourceSchema,
 }).strict();
 
 export const storyboardSchema = z.object({
   schemaVersion: z.literal(1),
+  // A language is useful even when the video has only text + sound effects.
+  language: z.enum(['tr', 'en']).optional(),
   narration: z.object({
     voicePath: localPathSchema,
     language: z.enum(['tr', 'en']).optional(),
+    source: z.enum(['creator-recording', 'imported']).optional(),
     approvedScriptPath: localPathSchema,
     transcriptPath: localPathSchema,
-  }).strict(),
+  }).strict().optional(),
   fps: z.union([z.literal(30), z.literal(60)]),
   durationMs: z.number().int().positive(),
   beats: z.array(visualBeatSchema).min(1).max(120),
   soundCues: z.array(soundCueSchema).max(120).optional(),
-}).strict().superRefine(({beats, soundCues = [], durationMs}, context) => {
+}).strict().superRefine(({beats, soundCues = [], durationMs, narration, language}, context) => {
+  if (!narration && soundCues.length === 0) {
+    context.addIssue({
+      code: 'custom',
+      path: ['soundCues'],
+      message: 'SFX-only project requires at least one approved sound cue',
+    });
+  }
+  if (language && narration?.language && language !== narration.language) {
+    context.addIssue({
+      code: 'custom', path: ['language'],
+      message: 'Display language and narration language must agree for a single localized edition',
+    });
+  }
   const ids = new Set<string>();
   let previousEnd = 0;
   for (const [index, beat] of beats.entries()) {
@@ -70,6 +86,12 @@ export const storyboardSchema = z.object({
       });
     }
     ids.add(beat.id);
+    if (narration && beat.cueSegmentIndex === undefined) {
+      context.addIssue({
+        code: 'custom', path: ['beats', index, 'cueSegmentIndex'],
+        message: 'Narrated video beats require an actual transcript segment index',
+      });
+    }
     if (beat.endMs <= beat.startMs) {
       context.addIssue({
         code: 'custom',
@@ -131,21 +153,11 @@ export const storyboardSchema = z.object({
 
 export type Storyboard = z.infer<typeof storyboardSchema>;
 
-export const validateNarratedStoryboard = (
+export const validateStoryboardAssets = (
   storyboardInput: unknown,
-  avenoxTranscriptInput: unknown,
   assets: readonly AssetRecord[],
-) => {
+): Storyboard => {
   const storyboard = storyboardSchema.parse(storyboardInput);
-  const transcript = normalizeAvenoxTranscript(avenoxTranscriptInput);
-  const lastSpokenEnd = Math.max(...transcript.segments.map((segment) => segment.endMs));
-  if (lastSpokenEnd > storyboard.durationMs) {
-    throw new Error(
-      'Spoken transcript ends at ' + lastSpokenEnd +
-      'ms, after storyboard duration ' + storyboard.durationMs + 'ms',
-    );
-  }
-
   const byId = new Map(assets.map((asset) => [asset.id, asset]));
   for (const cue of storyboard.soundCues ?? []) {
     const asset = byId.get(cue.assetId);
@@ -160,7 +172,39 @@ export const validateNarratedStoryboard = (
     }
   }
   for (const beat of storyboard.beats) {
-    const segment = transcript.segments[beat.cueSegmentIndex];
+    if (beat.source.kind !== 'asset') continue;
+    const asset = byId.get(beat.source.assetId);
+    if (!asset) {
+      throw new Error('Storyboard beat "' + beat.id + '" references missing asset ' + beat.source.assetId);
+    }
+    if (asset.reviewStatus !== 'approved' || asset.rights.clearance !== 'cleared') {
+      throw new Error('Storyboard beat "' + beat.id + '" references unapproved/uncleared asset ' + beat.source.assetId);
+    }
+  }
+  return storyboard;
+};
+
+export const validateNarratedStoryboard = (
+  storyboardInput: unknown,
+  avenoxTranscriptInput: unknown,
+  assets: readonly AssetRecord[],
+) => {
+  const storyboard = validateStoryboardAssets(storyboardInput, assets);
+  if (!storyboard.narration) {
+    throw new Error('Storyboard has no narration; validate SFX-only assets without an ASR transcript');
+  }
+  const transcript = normalizeAvenoxTranscript(avenoxTranscriptInput);
+  const lastSpokenEnd = Math.max(...transcript.segments.map((segment) => segment.endMs));
+  if (lastSpokenEnd > storyboard.durationMs) {
+    throw new Error(
+      'Spoken transcript ends at ' + lastSpokenEnd +
+      'ms, after storyboard duration ' + storyboard.durationMs + 'ms',
+    );
+  }
+
+  for (const beat of storyboard.beats) {
+    const segment = beat.cueSegmentIndex === undefined
+      ? undefined : transcript.segments[beat.cueSegmentIndex];
     if (!segment) {
       throw new Error(
         'Storyboard beat "' + beat.id + '" has invalid cueSegmentIndex ' +
@@ -172,20 +216,6 @@ export const validateNarratedStoryboard = (
         'Storyboard beat "' + beat.id +
         '" does not overlap its referenced narration segment ' +
         beat.cueSegmentIndex,
-      );
-    }
-    if (beat.source.kind !== 'asset') continue;
-    const asset = byId.get(beat.source.assetId);
-    if (!asset) {
-      throw new Error(
-        'Storyboard beat "' + beat.id + '" references missing asset ' +
-        beat.source.assetId,
-      );
-    }
-    if (asset.reviewStatus !== 'approved' || asset.rights.clearance !== 'cleared') {
-      throw new Error(
-        'Storyboard beat "' + beat.id + '" references unapproved/uncleared asset ' +
-        beat.source.assetId,
       );
     }
   }

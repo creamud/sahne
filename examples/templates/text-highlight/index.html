@@ -5,26 +5,27 @@
   {"id":"channelAccent","type":"color","label":"Channel accent","default":"#efbd73"},
   {"id":"channelBackground","type":"color","label":"Channel background","default":"#10191c"},
   {"id":"channelForeground","type":"color","label":"Channel text","default":"#f0eee6"},
-  {"id":"channelDisplayFont","type":"string","label":"Display font","default":"Georgia"}
+  {"id":"channelDisplayFont","type":"string","label":"Display font","default":"Montserrat"}
 ]'>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=1920,height=1080">
   <title>Sahne — large text highlight template</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
   <style>
     :root {
       --ground: var(--channelBackground, #10191c);
       --ink: var(--channelForeground, #f0eee6);
       --accent: var(--channelAccent, #efbd73);
-      --display: var(--channelDisplayFont, Georgia);
+      --display: var(--channelDisplayFont, Montserrat);
     }
     * {box-sizing:border-box}
     html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--ground)}
     #root{
       position:relative;width:1920px;height:1080px;color:var(--ink);
       background:radial-gradient(ellipse at 50% 50%,#1a272a,var(--ground) 75%);
-      font-family:var(--display),Georgia,serif;
+      font-family:var(--display),Montserrat,Arial,sans-serif;
     }
     #headline{position:absolute;left:145px;right:145px;top:286px;margin:0;
       font-size:127px;line-height:1.10;letter-spacing:-.055em;white-space:nowrap;
