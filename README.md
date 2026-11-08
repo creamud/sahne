@@ -70,6 +70,19 @@ The samples are **metadata-only**: no human voice or downloadable sound pack is 
 
 See [sound-design contract](docs/sound-design.md) and the [reuse-first research protocol](docs/research-and-reuse.md).
 
+## Assemble final H.264/AAC preview from visual + voice/SFX
+
+After **editing/approving the visual footage** and separately mixing the creator's actual voice with approved timed sound effects, Sahne can perform the final mux **without re-encoding the rendered graphics**:
+
+```bash
+pnpm video:assemble private-project/storyboard.json \
+  private-project/visual.mp4 \
+  private-project/outputs/narration-sfx.wav \
+  private-project/outputs/final.mp4
+```
+
+The visual must be silent H.264 and both media durations must agree with the language-specific storyboard. This does **not** generate visuals, recognize speech, align captions or approve the creative edit. The automated TR/EN smoke tests use **synthetic tones**, not real narration. See [final video assembly](docs/video-assembly.md).
+
 ## Quick start
 
 Requirements: Node.js 22+, pnpm 10+, and a machine able to run Chromium (Remotion installs/uses a supported browser).

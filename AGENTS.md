@@ -40,6 +40,10 @@ Use upstream HyperFrames composition variables instead of a custom parameterized
 
 **Sound design:** `docs/sound-design.md` describes rights-checked optional SFX cues and `pnpm audio:mix`. Use the existing asset catalog (`category: audio`), **only approved/cleared** sounds, and native FFmpeg filtergraphs. Keep spoken narration authoritative; effects quiet, sparse and tied to meaningful animation events. Real voice/audio binaries and Drive IDs must not be committed to public GitHub. Automated sine-wave audio tests do not prove human speech clarity or licensing.
 
+## Final audio+video handoff (no new editor)
+
+After preparing a **silent H.264 visual MP4** in upstream Avenox/HyperFrames/Remotion and a reviewed narration+SFX WAV via Sahne's FFmpeg mix, use `pnpm video:assemble` to **mux** them into H.264/AAC MP4 without video re-encoding. See `docs/video-assembly.md`. Validate FPS and independently recorded language-specific durations; never silently trim speech to make it fit video or replace an already-audible video. If source clips still require editorial cutting or captions, use existing Avenox/MLT tools, not a new video editor.
+
 ## Stack
 Node.js 22+, pnpm 10+, TypeScript/React, Remotion 4 (pin `remotion` and all `@remotion/*` packages to exactly the same version), Zod.
 

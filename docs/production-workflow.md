@@ -46,6 +46,10 @@ For Turkish and English productions, preserve the same pinned channel style and 
 
 The optional `soundCues` timeline annotates a visual event with a reviewed audio asset ID, duration and quiet gain. Use an existing library asset or import a verified-licensed one; avoid adding sound by default to every motion. FFmpeg creates a distinct stereo WAV stem containing the actual narration and the approved timed effects. This stem has not yet been integrated with Avenox's final video mux; the real voice pilot remains open.
 
+## Final assembly handoff
+
+The reproducible technical gap between an already rendered/edited silent video and the reviewed narration+SFX audio is addressed with `pnpm video:assemble`, a thin FFmpeg **stream mux**, not a new editor. Both inputs must match the **localized** storyboard's timebase; an English visual may need different visual hold times than the Turkish counterpart. See [video assembly](video-assembly.md). Actual narration synchronization and human QA remain required before publishing.
+
 ## Tooling boundary
 
 Avenox Skills, existing renderer(s), ASR tools, FFmpeg and optionally HyperFrames are separate components. A coding agent can orchestrate them through documented commands. Sahne must not assume one LLM provider, require a new orchestration service, or rebuild a third-party editing package to get started.

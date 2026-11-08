@@ -71,6 +71,10 @@ The tool rejects missing media, catalog path traversal/symlink escapes, non-audi
 
 Current FFmpeg mix: 48kHz stereo 24-bit WAV, explicit effect gains, non-normalizing `amix`, peak limiter. This protects against obvious summation peaks but does **not** guarantee consistent perceived loudness: listen and inspect loudness/true peak before publication. Do not mechanically target an LUFS number without understanding delivery normalization and spoken-word intelligibility.
 
+## Final video export
+
+Once a **silent final visual** is edited/rendered to exactly the narration timeline length, run `pnpm video:assemble <storyboard.json> <silent-visual.mp4> <narration-sfx.wav> <final.mp4>`. This uses FFmpeg stream copying and AAC audio encoding, not a new editor. See [final assembly](video-assembly.md). Avenox/MLT should still handle multi-shot video editing. Neither this mux nor the synthetic test replaces human review of actual narration and audio balance.
+
 ## Synthetic actual-audio smoke test
 
 `tests/sound-mix.test.ts` generates short mono sine WAVs for a simulated voice and click (no copyrighted recordings, no TTS, no private data), runs the real FFmpeg mixer twice — **Turkish 7.1 seconds**, **English 6.2 seconds** — then probes both output codecs, durations, channel layouts and sample rates. It also rejects symlinked catalog media escaping the allowed directory. CI installs FFmpeg before running these tests.
