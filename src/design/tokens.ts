@@ -14,6 +14,19 @@ export const tokens = {
   metricBarHeight: 26,
 } as const;
 
+export const canvasPresets = {
+  landscape: {width: 1920, height: 1080, safeArea: tokens.safeArea, contentScale: 1},
+  shorts: {width: 1080, height: 1920, safeArea: {horizontal: 100, vertical: 185}, contentScale: 0.9},
+} as const;
+
+export const getCanvasPreset = (width: number, height: number) => {
+  const preset = Object.values(canvasPresets).find((candidate) =>
+    candidate.width === width && candidate.height === height,
+  );
+  if (!preset) throw new RangeError('Unsupported canvas dimensions: ' + width + '×' + height);
+  return preset;
+};
+
 export const relativeLuminance = (hex: string): number => {
   if (!/^#[\da-fA-F]{6}$/.test(hex)) {
     throw new RangeError('Expected a six-digit CSS hex color');
