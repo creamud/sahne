@@ -1,0 +1,15 @@
+{
+  "text": "İstemci bir istek gönderir. Sunucu isteği işler ve yanıt verir.",
+  "segments": [
+    {
+      "start": 0.2,
+      "end": 3.1,
+      "text": "İstemci bir istek gönderir."
+    },
+    {
+      "start": 3.4,
+      "end": 7,
+      "text": "Sunucu isteği işler ve yanıt verir."
+    }
+  ]
+}

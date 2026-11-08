@@ -47,6 +47,12 @@ The sample illustrates three timed beats, reusing one ID in two beats. The examp
 
 For a real project, pass actual private local paths to transcript, storyboard and an asset-catalog directory. The CLI prints structured JSON on success, or a JSON error on stderr with nonzero exit status. Asset metadata stays separate from binary footage; see [storage and assets](storage-and-assets.md).
 
+## Localized sound cues
+
+The storyboard also optionally accepts `narration.language` (`tr` or `en`) and `soundCues[]`. Sound cues have a stable ID, time in milliseconds, duration, gain in dB, approved audio asset ID and optional linked visual beat. A cue's trigger must fall within the referenced beat, and its audio must have cleared usage rights. English and Turkish tracks must maintain **independent timing**; Avenox's published ASR helper is currently Turkish-configured.
+
+See [sound design](sound-design.md) for the existing FFmpeg mixer, metadata-only examples and real-recording quality gates.
+
 ## Human review and next integration
 
 1. Approve the script, record narration, edit any retakes.

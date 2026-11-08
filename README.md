@@ -52,6 +52,24 @@ pnpm template:variables examples/identity/channel.style.json \
 
 See [channel/style and template architecture](docs/channel-style-and-templates.md). No hosted service, template marketplace or automatic third-party code installation has been introduced.
 
+## Narration-first sound design (Turkish + English)
+
+Sahne now supports **optional timed, rights-checked sound-effect cues** under the creator's own narration. Turkish and English audio tracks have independent transcript/cue timings but may reuse the same channel style, video templates and licensed sound effects.
+
+```bash
+pnpm storyboard:validate examples/production/transcript.sfx-tr.sample.json \
+  examples/production/storyboard.sfx-tr.sample.json \
+  examples/production/sound-catalog
+
+pnpm storyboard:validate examples/production/transcript.sfx-en.sample.json \
+  examples/production/storyboard.sfx-en.sample.json \
+  examples/production/sound-catalog
+```
+
+The samples are **metadata-only**: no human voice or downloadable sound pack is committed. For actual private audio, use `pnpm audio:mix <project-dir> <storyboard.json> <local-assets-dir> <output.wav>`. It invokes FFmpeg, not a custom audio engine.
+
+See [sound-design contract](docs/sound-design.md) and the [reuse-first research protocol](docs/research-and-reuse.md).
+
 ## Quick start
 
 Requirements: Node.js 22+, pnpm 10+, and a machine able to run Chromium (Remotion installs/uses a supported browser).

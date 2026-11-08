@@ -22,7 +22,8 @@
     "assets:validate": "tsx scripts/asset-catalog.ts validate",
     "assets:search": "tsx scripts/asset-catalog.ts search",
     "storyboard:validate": "tsx scripts/validate-storyboard.ts",
-    "template:variables": "tsx scripts/template-variables.ts"
+    "template:variables": "tsx scripts/template-variables.ts",
+    "audio:mix": "tsx scripts/mix-audio.ts"
   },
   "dependencies": {
     "remotion": "4.0.540",

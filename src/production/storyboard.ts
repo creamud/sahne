@@ -26,6 +26,16 @@ const sourceSchema = z.discriminatedUnion('kind', [
   }).strict(),
 ]);
 
+const soundCueSchema = z.object({
+  id: idSchema,
+  assetId: idSchema,
+  atMs: z.number().int().nonnegative(),
+  durationMs: z.number().int().positive().max(30_000),
+  // A quiet effect under spoken narration; no accidental 0 dB cue.
+  gainDb: z.number().finite().min(-48).max(-6),
+  visualBeatId: idSchema.optional(),
+}).strict();
+
 const visualBeatSchema = z.object({
   id: idSchema,
   startMs: z.number().int().nonnegative(),
@@ -40,13 +50,15 @@ export const storyboardSchema = z.object({
   schemaVersion: z.literal(1),
   narration: z.object({
     voicePath: localPathSchema,
+    language: z.enum(['tr', 'en']).optional(),
     approvedScriptPath: localPathSchema,
     transcriptPath: localPathSchema,
   }).strict(),
   fps: z.union([z.literal(30), z.literal(60)]),
   durationMs: z.number().int().positive(),
   beats: z.array(visualBeatSchema).min(1).max(120),
-}).strict().superRefine(({beats, durationMs}, context) => {
+  soundCues: z.array(soundCueSchema).max(120).optional(),
+}).strict().superRefine(({beats, soundCues = [], durationMs}, context) => {
   const ids = new Set<string>();
   let previousEnd = 0;
   for (const [index, beat] of beats.entries()) {
@@ -81,6 +93,40 @@ export const storyboardSchema = z.object({
     }
     previousEnd = Math.max(previousEnd, beat.endMs);
   }
+  const cueIds = new Set<string>();
+  for (const [index, cue] of soundCues.entries()) {
+    if (cueIds.has(cue.id)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['soundCues', index, 'id'],
+        message: 'Duplicate sound cue ID: ' + cue.id,
+      });
+    }
+    cueIds.add(cue.id);
+    if (cue.atMs + cue.durationMs > durationMs) {
+      context.addIssue({
+        code: 'custom',
+        path: ['soundCues', index, 'durationMs'],
+        message: 'Sound cue extends past narration timeline',
+      });
+    }
+    if (cue.visualBeatId !== undefined) {
+      const beat = beats.find(({id}) => id === cue.visualBeatId);
+      if (!beat) {
+        context.addIssue({
+          code: 'custom',
+          path: ['soundCues', index, 'visualBeatId'],
+          message: 'Sound cue references missing visual beat',
+        });
+      } else if (cue.atMs < beat.startMs || cue.atMs >= beat.endMs) {
+        context.addIssue({
+          code: 'custom',
+          path: ['soundCues', index, 'atMs'],
+          message: 'Sound cue trigger must be within its referenced visual beat',
+        });
+      }
+    }
+  }
 });
 
 export type Storyboard = z.infer<typeof storyboardSchema>;
@@ -101,6 +147,18 @@ export const validateNarratedStoryboard = (
   }
 
   const byId = new Map(assets.map((asset) => [asset.id, asset]));
+  for (const cue of storyboard.soundCues ?? []) {
+    const asset = byId.get(cue.assetId);
+    if (!asset) {
+      throw new Error('Sound cue "' + cue.id + '" references missing asset ' + cue.assetId);
+    }
+    if (asset.category !== 'audio') {
+      throw new Error('Sound cue "' + cue.id + '" references non-audio asset ' + cue.assetId);
+    }
+    if (asset.reviewStatus !== 'approved' || asset.rights.clearance !== 'cleared') {
+      throw new Error('Sound cue "' + cue.id + '" references unapproved/uncleared asset ' + cue.assetId);
+    }
+  }
   for (const beat of storyboard.beats) {
     const segment = transcript.segments[beat.cueSegmentIndex];
     if (!segment) {

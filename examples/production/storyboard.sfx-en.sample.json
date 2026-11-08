@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "narration": {
+    "language": "en",
+    "voicePath": "audio/voice-recording.wav",
+    "approvedScriptPath": "script.en.sample.md",
+    "transcriptPath": "transcript.sfx-en.sample.json"
+  },
+  "fps": 30,
+  "durationMs": 6200,
+  "beats": [
+    {
+      "id": "client-request",
+      "startMs": 400,
+      "endMs": 2300,
+      "treatment": "overlay",
+      "cueText": "Request sent",
+      "cueSegmentIndex": 0,
+      "source": {
+        "kind": "generate",
+        "brief": "Animate one large client-to-server request dot with calm motion."
+      }
+    },
+    {
+      "id": "server-response",
+      "startMs": 3050,
+      "endMs": 5500,
+      "treatment": "cutaway",
+      "cueText": "Server response",
+      "cueSegmentIndex": 1,
+      "source": {
+        "kind": "generate",
+        "brief": "Show one large server icon and a returning response arrow."
+      }
+    }
+  ],
+  "soundCues": [
+    {
+      "id": "request-click",
+      "assetId": "synthetic-click-v1",
+      "atMs": 750,
+      "durationMs": 200,
+      "gainDb": -22,
+      "visualBeatId": "client-request"
+    },
+    {
+      "id": "response-click",
+      "assetId": "synthetic-click-v1",
+      "atMs": 3800,
+      "durationMs": 200,
+      "gainDb": -24,
+      "visualBeatId": "server-response"
+    }
+  ]
+}

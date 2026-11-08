@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "synthetic-click-v1",
+  "title": "Synthetic test click (fixture only)",
+  "description": "Test-only audio metadata; no WAV media is included. Generate an original sound before use. This is not an approved real-world sound asset.",
+  "category": "audio",
+  "tags": [
+    "sound-effect",
+    "click",
+    "ui"
+  ],
+  "reviewStatus": "approved",
+  "rights": {
+    "origin": "original",
+    "clearance": "cleared",
+    "license": "test-fixture-only"
+  },
+  "location": {
+    "kind": "local",
+    "relativePath": "synthetic-click-v1/click.wav"
+  },
+  "durationMs": 300
+}

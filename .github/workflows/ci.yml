@@ -31,6 +31,8 @@ jobs:
         run: pnpm exec remotion versions
       - name: Typecheck
         run: pnpm typecheck
+      - name: Install ffprobe for metadata validation
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Unit tests
         run: pnpm test
       - name: Prepare Chromium
@@ -41,8 +43,6 @@ jobs:
           mkdir -p out
           set -o pipefail
           pnpm render:smoke 2>&1 | tee out/render.log
-      - name: Install ffprobe for metadata validation
-        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Verify encoded video
         run: pnpm verify:smoke
       - name: Render thirty frames crossing a timeline scene boundary

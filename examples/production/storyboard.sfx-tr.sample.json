@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "narration": {
+    "language": "tr",
+    "voicePath": "audio/ses-kaydi.wav",
+    "approvedScriptPath": "script.tr.sample.md",
+    "transcriptPath": "transcript.sfx-tr.sample.json"
+  },
+  "fps": 30,
+  "durationMs": 7500,
+  "beats": [
+    {
+      "id": "client-request",
+      "startMs": 400,
+      "endMs": 2900,
+      "treatment": "overlay",
+      "cueText": "İstek gönderiliyor",
+      "cueSegmentIndex": 0,
+      "source": {
+        "kind": "generate",
+        "brief": "İstemci ve sunucu arasında büyük, sade bir hareketli istek noktası göster."
+      }
+    },
+    {
+      "id": "server-response",
+      "startMs": 3650,
+      "endMs": 6950,
+      "treatment": "cutaway",
+      "cueText": "Sunucudan yanıt dönüyor",
+      "cueSegmentIndex": 1,
+      "source": {
+        "kind": "generate",
+        "brief": "Yalnızca büyük bir sunucu simgesi ve yanıt okunu hareketlendir."
+      }
+    }
+  ],
+  "soundCues": [
+    {
+      "id": "request-click",
+      "assetId": "synthetic-click-v1",
+      "atMs": 650,
+      "durationMs": 200,
+      "gainDb": -22,
+      "visualBeatId": "client-request"
+    },
+    {
+      "id": "response-click",
+      "assetId": "synthetic-click-v1",
+      "atMs": 4600,
+      "durationMs": 200,
+      "gainDb": -24,
+      "visualBeatId": "server-response"
+    }
+  ]
+}

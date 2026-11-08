@@ -40,6 +40,12 @@ Never fill visual gaps merely to maximize movement. Preserve attention on speech
 
 Use an **asset ID** in project manifests rather than hardcoded machine-specific absolute paths. See [storage and assets](storage-and-assets.md).
 
+## Localized narration and sound effects
+
+For Turkish and English productions, preserve the same pinned channel style and reusable templates but record **separate narrations** with **independent transcripts, segment timings and sound-effect cue times**. See [sound design](sound-design.md).
+
+The optional `soundCues` timeline annotates a visual event with a reviewed audio asset ID, duration and quiet gain. Use an existing library asset or import a verified-licensed one; avoid adding sound by default to every motion. FFmpeg creates a distinct stereo WAV stem containing the actual narration and the approved timed effects. This stem has not yet been integrated with Avenox's final video mux; the real voice pilot remains open.
+
 ## Tooling boundary
 
 Avenox Skills, existing renderer(s), ASR tools, FFmpeg and optionally HyperFrames are separate components. A coding agent can orchestrate them through documented commands. Sahne must not assume one LLM provider, require a new orchestration service, or rebuild a third-party editing package to get started.
