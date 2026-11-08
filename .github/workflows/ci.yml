@@ -31,7 +31,7 @@ jobs:
         run: pnpm exec remotion versions
       - name: Typecheck
         run: pnpm typecheck
-      - name: Install ffprobe for metadata validation
+      - name: Install FFmpeg for metadata and frame inspection
         run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Unit tests
         run: pnpm test
@@ -44,7 +44,7 @@ jobs:
           set -o pipefail
           pnpm render:smoke 2>&1 | tee out/render.log
       - name: Verify encoded video
-        run: pnpm verify:smoke
+        run: pnpm verify:smoke --stills out/smoke-stills
       - name: Render thirty frames crossing a timeline scene boundary
         shell: bash
         run: |
@@ -52,7 +52,16 @@ jobs:
           set -o pipefail
           pnpm render:timeline:smoke 2>&1 | tee out/timeline-render.log
       - name: Verify timeline output codec and metadata
-        run: node scripts/verify-render.mjs out/timeline-smoke.mp4
+        run: node scripts/verify-render.mjs out/timeline-smoke.mp4 --stills out/timeline-stills
+      - name: Upload render inspection frames
+        uses: actions/upload-artifact@v4
+        with:
+          name: sahne-render-inspection
+          path: |
+            out/smoke-stills/*.png
+            out/timeline-stills/*.png
+          if-no-files-found: error
+          retention-days: 3
       - name: Upload debugging artifacts if validation fails
         if: failure()
         uses: actions/upload-artifact@v4
