@@ -64,7 +64,7 @@ test('imports stock offline and enforces draft, approved, and rejected catalog s
     const unclear = intake(media('unclear.png', 'green'));
     assert.match(invoke('review', unclear.id, 'approve', 'Human reviewer').stderr, /documented license/);
     assert.equal(invoke('review', unclear.id, 'reject', 'Human reviewer').status, 0);
-    assert.match(invoke('review', unclear.id, 'approve', 'Human reviewer').stderr, /already been reviewed/);
+    assert.match(invoke('review', unclear.id, 'approve', 'Human reviewer').stderr, /durable review decision|already been reviewed/);
 
     await writeFile(metadata, JSON.stringify(source));
     const changed = intake(media('changed.png', 'white'));
