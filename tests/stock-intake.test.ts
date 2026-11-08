@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {execFileSync, spawnSync} from 'node:child_process';
-import {chmod, mkdtemp, readFile, rm, stat, writeFile} from 'node:fs/promises';
+import {mkdtemp, readFile, rm, stat, truncate, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {test} from 'node:test';
@@ -70,14 +70,39 @@ test('imports stock offline and enforces draft, approved, and rejected catalog s
     const changed = intake(media('changed.png', 'white'));
     await writeFile(changed.preview, 'corrupt');
     assert.match(invoke('review', changed.id, 'approve', 'Human reviewer').stderr, /checksum changed/);
-    // Simulate interruption after the durable receipt was published but before the sidecar changed.
+    // Simulate interruption after the durable decision was published but before the sidecar changed.
     const interrupted = intake(media('interrupted.png', 'yellow'));
-    await writeFile(join(catalog, interrupted.id, 'review-receipt.json'), JSON.stringify({decision: 'reject'}));
-    assert.match(invoke('review', interrupted.id, 'approve', 'Human reviewer').stderr, /durable review decision/);
+    const interruptedReceipt = join(catalog, interrupted.id, 'review-receipt.json');
+    const decisionReceipt = {
+      reviewer: 'Human reviewer', decision: 'approve',
+      reviewedAt: new Date().toISOString(), licenseUrl: source.licenseUrl, credit: source.attribution,
+    };
+    await writeFile(interruptedReceipt, JSON.stringify(decisionReceipt));
+    assert.match(invoke('review', interrupted.id, 'reject', 'Other reviewer').stderr, /durable review decision/);
+    const recovered = invoke('recover', interrupted.id);
+    assert.equal(recovered.status, 0, recovered.stderr);
+    assert.equal(JSON.parse(recovered.stdout).status, 'approved');
+    assert.deepEqual(JSON.parse(await readFile(interruptedReceipt, 'utf8')), decisionReceipt);
+    assert.equal((await loadAssetCatalog(catalog)).find(({id}) => id === interrupted.id)?.reviewStatus, 'approved');
+    assert.match(invoke('recover', interrupted.id).stderr, /already been reviewed/);
+
+    const interruptedReject = intake(media('interrupted-reject.png', 'purple'));
+    await writeFile(join(catalog, interruptedReject.id, 'review-receipt.json'),
+      JSON.stringify({...decisionReceipt, decision: 'reject'}));
+    const rejectedRecovery = invoke('recover', interruptedReject.id);
+    assert.equal(rejectedRecovery.status, 0, rejectedRecovery.stderr);
+    assert.equal(JSON.parse(rejectedRecovery.stdout).status, 'retired');
+    assert.match(invoke('recover', changed.id).stderr, /No durable review decision/);
+
+    const oversized = join(dir, 'oversized.png');
+    await writeFile(oversized, '');
+    await truncate(oversized, 512 * 1024 * 1024 + 1);
+    assert.match(invoke('import', oversized, metadata).stderr, /exceeds size limit/);
+
     const broken = join(dir, 'broken.mp4');
     await writeFile(broken, 'not a video');
     assert.equal(invoke('import', broken, metadata).status, 1);
-    assert.equal(searchAssets(await loadAssetCatalog(catalog), 'stock').length, 2);
+    assert.equal(searchAssets(await loadAssetCatalog(catalog), 'stock').length, 3);
   } finally {
     await rm(dir, {recursive: true, force: true});
   }
