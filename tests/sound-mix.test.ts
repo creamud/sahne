@@ -47,14 +47,30 @@ test('FFmpeg mixes timed, rights-approved SFX with separate Turkish and English 
     ]) {
       const projectDir = join(root, entry.language);
       await mkdir(join(projectDir, 'audio'), {recursive: true});
-      const input = join(projectDir, 'audio', 'narration.wav');
-      makeWav(input, entry.language === 'tr' ? 220 : 330, entry.durationMs / 1000);
+      const inputWav = join(projectDir, 'audio', 'narration.wav');
+      makeWav(inputWav, entry.language === 'tr' ? 220 : 330, entry.durationMs / 1000);
+      // Matroska/FLAC commonly reports stream.duration as N/A while
+      // format.duration remains valid. Verify that probeAudio falls back.
+      const voiceFilename = entry.language === 'tr' ? 'narration.mka' : 'narration.wav';
+      if (entry.language === 'tr') {
+        const matroska = join(projectDir, 'audio', voiceFilename);
+        execute('ffmpeg', [
+          '-hide_banner', '-loglevel', 'error', '-nostdin', '-y',
+          '-i', inputWav, '-c:a', 'flac', matroska,
+        ]);
+        const metadata = JSON.parse(execute('ffprobe', [
+          '-v', 'error', '-show_entries', 'stream=duration:format=duration',
+          '-of', 'json', matroska,
+        ])) as {streams?: Array<{duration?: string}>; format?: {duration?: string}};
+        assert.ok(!Number.isFinite(Number(metadata.streams?.[0]?.duration)));
+        assert.ok(Number(metadata.format?.duration) > 0);
+      }
 
       const storyboard = {
         schemaVersion: 1,
         narration: {
           language: entry.language,
-          voicePath: 'audio/narration.wav',
+          voicePath: 'audio/' + voiceFilename,
           approvedScriptPath: 'script.md',
           transcriptPath: 'transcript.json',
         },
@@ -170,6 +186,40 @@ test('mix refuses symlinks and playlists that reference media outside the approv
     ], {encoding: 'utf8'});
     assert.equal(playlistResult.status, 1);
     assert.match(playlistResult.stderr, /not on whitelist/);
+  } finally {
+    await rm(root, {recursive: true, force: true});
+  }
+});
+
+test('mix rejects narration with an audible tail inside the old duration tolerance', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'sahne-audio-tail-'));
+  try {
+    const catalog = join(root, 'catalog');
+    await mkdir(catalog);
+    execute('ffmpeg', [
+      '-v', 'error', '-f', 'lavfi',
+      '-i', String.raw`aevalsrc=if(gte(t\,1)\,0.5*sin(2*PI*440*t)\,0):s=48000:d=1.09`,
+      join(root, 'voice.wav'),
+    ]);
+    const storyPath = join(root, 'storyboard.json');
+    await writeFile(storyPath, JSON.stringify({
+      schemaVersion: 1,
+      narration: {voicePath: 'voice.wav', approvedScriptPath: 'script.md', transcriptPath: 'transcript.json'},
+      fps: 30, durationMs: 1000,
+      beats: [{
+        id: 'opening', startMs: 0, endMs: 1000, treatment: 'overlay',
+        cueText: 'Synthetic narration tail', cueSegmentIndex: 0,
+        source: {kind: 'generate', brief: 'Show a synthetic test visual.'},
+      }],
+    }));
+
+    const output = join(root, 'mix.wav');
+    const result = spawnSync(process.execPath, [
+      '--import', 'tsx', 'scripts/mix-audio.ts', root, storyPath, catalog, output,
+    ], {encoding: 'utf8'});
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Recorded narration duration \(1090ms\) differs/);
+    await assert.rejects(stat(output), {code: 'ENOENT'});
   } finally {
     await rm(root, {recursive: true, force: true});
   }

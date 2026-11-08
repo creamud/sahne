@@ -51,16 +51,19 @@ const probeAudio = async (file: string): Promise<number> => {
   const {stdout} = await run('ffprobe', [
     ...localAudioInputOptions,
     '-v', 'error', '-select_streams', 'a:0',
-    '-show_entries', 'stream=codec_name,channels:format=duration',
+    '-show_entries', 'stream=duration:format=duration',
     '-of', 'json', file,
   ]);
-  let parsed: {streams?: Array<{codec_name?: string}>; format?: {duration?: string}};
+  let parsed: {streams?: Array<{duration?: string}>; format?: {duration?: string}};
   try {
     parsed = JSON.parse(stdout) as typeof parsed;
   } catch {
     throw new Error('ffprobe did not return audio metadata for ' + file);
   }
-  const duration = Number(parsed.format?.duration);
+  const streamDuration = Number(parsed.streams?.[0]?.duration);
+  const duration = Number.isFinite(streamDuration) && streamDuration > 0
+    ? streamDuration
+    : Number(parsed.format?.duration);
   if (!parsed.streams?.length || !Number.isFinite(duration) || duration <= 0) {
     throw new Error('Missing usable audio track or duration: ' + file);
   }
@@ -89,7 +92,8 @@ export const mixNarrationWithEffects = async ({
     ? await resolveExistingMedia(projectDirectory, storyboard.narration.voicePath)
     : undefined;
   const voiceDuration = voice ? await probeAudio(voice) : storyboard.durationMs;
-  if (voice && Math.abs(voiceDuration - storyboard.durationMs) > 100) {
+  const durationDifference = voiceDuration - storyboard.durationMs;
+  if (durationDifference > 1 || durationDifference < -100) {
     throw new Error(
       'Recorded narration duration (' + Math.round(voiceDuration) +
       'ms) differs from storyboard duration (' + storyboard.durationMs +
@@ -103,9 +107,10 @@ export const mixNarrationWithEffects = async ({
   const filters: string[] = [];
   const seconds = (milliseconds: number) => (milliseconds / 1000).toFixed(3);
 
+  const voiceLengthFilter = voice ? 'apad=whole_dur=' : 'atrim=duration=';
   filters.push(
     '[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,' +
-    'apad,atrim=duration=' + seconds(storyboard.durationMs) +
+    voiceLengthFilter + seconds(storyboard.durationMs) +
     ',asetpts=PTS-STARTPTS[voice]',
   );
 
@@ -138,8 +143,8 @@ export const mixNarrationWithEffects = async ({
   const inputs = ['[voice]', ...sources.map((_, index) => '[effect' + index + ']')].join('');
   const finalFilter = cues.length
     ? inputs + 'amix=inputs=' + (cues.length + 1) +
-      ':duration=first:normalize=0:dropout_transition=0,alimiter=limit=0.95[out]'
-    : '[voice]alimiter=limit=0.95[out]';
+      ':duration=first:normalize=0:dropout_transition=0,alimiter=limit=0.95:latency=1[out]'
+    : '[voice]alimiter=limit=0.95:latency=1[out]';
   filters.push(finalFilter);
 
   const dest = resolve(outputPath);
