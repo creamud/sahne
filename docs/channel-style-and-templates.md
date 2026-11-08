@@ -45,7 +45,7 @@ The channel style file, character sheets, working scripts and Drive identifiers 
 
 ## Style inheritance and consistency
 
-1. **Channel profile is authoritative.** Each channel profile has `channelId` + incrementing `revision`. Its colors, typefaces, motion direction and character identities are shared across the channel's videos.
+1. **Channel profile is authoritative.** Current typography defaults to Montserrat for display and body text (SIL OFL 1.1); font choice is overridable in a new channel style revision. Each channel profile has `channelId` + incrementing `revision`. Its colors, typefaces, motion direction and character identities are shared across the channel's videos.
 2. **Each video pins one channel revision.** Replaying a video against a different revision must fail rather than silently drift. Upgrading is an explicit editorial decision, with before/after previews.
 3. **Each template pins an ID and version** such as `kinetic-text-highlight@1.0.0`. Its approved input schema describes content, not brand identity.
 4. **Channel tokens override template defaults.** Template authored defaults are preview fallbacks. A caller supplies text/images and other declared inputs, but cannot pass `channelAccent` as arbitrary content and escape the channel style policy.

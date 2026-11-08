@@ -18,5 +18,7 @@
       "id": "macos-window-reveal",
       "version": "1.0.0"
     }
-  ]
+  ],
+  "mode": "narrated",
+  "language": "en"
 }

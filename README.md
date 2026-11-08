@@ -1,6 +1,6 @@
 # Sahne
 
-**An agent-operated, narration-first video production workflow.** Sahne aims to turn creator-approved scripts and human-recorded narration into timed, reviewable YouTube videos with reusable B-roll and editable motion graphics. Reuse existing tools and cataloged assets before writing new renderers.
+**Agent-operated, code-driven video production.** Sahne supports localized motion graphics with sound effects **without speech**, as well as optional narration using creator-recorded or externally supplied audio. Reuse existing tools and cataloged assets before writing new renderers.
 
 > **Project status:** the existing implementation is a small Remotion-based scene renderer, **not** a complete narration-to-video pipeline. Product direction is tracked in [#20](https://github.com/yesvus/sahne/issues/20).
 
@@ -11,7 +11,7 @@
 - [GitHub vs Drive / asset catalog](docs/storage-and-assets.md)
 - [Current renderer architecture](docs/architecture.md)
 
-**Creator flow:** brainstorm in ChatGPT → approve a script → record real voice → align the audio transcript → storyboard → reuse or generate visuals → render → QA → archive reusable assets. Keep unpublished scripts and media in a private production workspace, not this public repository.
+**Creator flow:** choose a topic → plan visual beats → reuse templates/assets → render localized motion → add SFX → QA. **When narration is wanted**, optionally approve a script, import or record voice, align the actual transcript and mix it with the visuals. No voice is required for SFX-only clips. Keep unpublished scripts and media in a private production workspace, not this public repository.
 
 ## Asset catalog (first implemented production component)
 
@@ -82,6 +82,20 @@ pnpm video:assemble private-project/storyboard.json \
 ```
 
 The visual must be silent H.264 and both media durations must agree with the language-specific storyboard. This does **not** generate visuals, recognize speech, align captions or approve the creative edit. The automated TR/EN smoke tests use **synthetic tones**, not real narration. See [final video assembly](docs/video-assembly.md).
+
+## Speech-free TR/EN animations (Montserrat + sound effects)
+
+**No narration is required for the motion graphics examples.** Current channel font preference is **Montserrat**, set in the versioned channel style and overridable per channel. The same HyperFrames HTTP scene accepts Turkish or English text through its existing render variables.
+
+```bash
+pnpm storyboard:validate - \
+  examples/production/storyboard.sfx-only-tr.sample.json \
+  examples/production/sound-catalog
+```
+
+This validates the **SFX-only** storyboard without inventing a speech transcript. A real locally approved WAV SFX file is needed for actual audio mixing; our CI generates original synthetic test clicks and renders both language editions to reviewable MP4s.
+
+See [speech-free/localized workflow and optional voice inputs](docs/audio-modes-localization.md).
 
 ## Quick start
 

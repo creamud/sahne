@@ -44,7 +44,7 @@ Use an **asset ID** in project manifests rather than hardcoded machine-specific 
 
 For Turkish and English productions, preserve the same pinned channel style and reusable templates but record **separate narrations** with **independent transcripts, segment timings and sound-effect cue times**. See [sound design](sound-design.md).
 
-The optional `soundCues` timeline annotates a visual event with a reviewed audio asset ID, duration and quiet gain. Use an existing library asset or import a verified-licensed one; avoid adding sound by default to every motion. FFmpeg creates a distinct stereo WAV stem containing the actual narration and the approved timed effects. This stem has not yet been integrated with Avenox's final video mux; the real voice pilot remains open.
+The optional `soundCues` timeline annotates a visual event with a reviewed audio asset ID, duration and quiet gain. A **SFX-only** video is valid without narrator, script or transcript; its display language is independent of speech. A narrated video may import a licensed external voice recording or use the creator's own recording. Use an existing library asset or import a verified-licensed one; avoid adding sound by default to every motion. FFmpeg creates a distinct stereo WAV stem containing the actual narration and the approved timed effects. This stem has not yet been integrated with Avenox's final video mux; the real voice pilot remains open.
 
 ## Final assembly handoff
 

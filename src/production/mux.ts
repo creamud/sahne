@@ -214,7 +214,8 @@ export const muxRenderedVisualAndNarration = async ({
   return {
     outputPath: output,
     durationMs: Math.round(result.durationMs),
-    language: storyboard.narration.language ?? 'unspecified',
+    mode: storyboard.narration ? 'narrated' : 'sfx-only',
+    language: storyboard.language ?? storyboard.narration?.language ?? 'unspecified',
     fps: storyboard.fps,
     videoCodec: 'h264',
     audioCodec: 'aac',
