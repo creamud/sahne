@@ -49,9 +49,10 @@ const localAudioInputOptions = [
 
 const probeAudio = async (file: string): Promise<number> => {
   const {stdout} = await run('ffprobe', [
+    ...localAudioInputOptions,
     '-v', 'error', '-select_streams', 'a:0',
     '-show_entries', 'stream=codec_name,channels:format=duration',
-    '-of', 'json', ...localAudioInputOptions, file,
+    '-of', 'json', file,
   ]);
   let parsed: {streams?: Array<{codec_name?: string}>; format?: {duration?: string}};
   try {
